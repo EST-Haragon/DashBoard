@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Scanner DANFE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card.primary .icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card.success .icon {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-card.warning .icon {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .stat-card.info .icon {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .stat-card .label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-card .value {
+            color: #1f2937;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .trend {
+            font-size: 13px;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .stat-card .trend.down {
+            color: #ef4444;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 968px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            color: #1f2937;
+            font-size: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filters select {
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filters select:hover {
+            border-color: #667eea;
+        }
+
+        .filters select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .ranking-item:hover {
+            background: #f3f4f6;
+            transform: translateX(4px);
+        }
+
+        .ranking-position {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: white;
+        }
+
+        .ranking-position.gold {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        }
+
+        .ranking-position.silver {
+            background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+        }
+
+        .ranking-position.bronze {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .ranking-position.regular {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .ranking-info {
+            flex: 1;
+        }
+
+        .ranking-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .ranking-loja {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .ranking-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .table th {
+            text-align: left;
+            padding: 12px;
+            background: #f9fafb;
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 13px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+        }
+
+        .table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .import-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .import-section h3 {
+            color: white;
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+
+        .import-section p {
+            opacity: 0.9;
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
+        }
+
+        .last-update {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+            margin-top: 16px;
+            justify-content: center;
+            opacity: 0.9;
+        }
+
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            text-decoration: underline;
+        }
+
+        .refresh-btn:hover {
+            opacity: 0.8;
+        }
+
+        .supported-formats {
+            margin-top: 20px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Dashboard - Scanner DANFE</h1>
+        <p>Visão completa da produtividade e desempenho</p>
+    </div>
+
+    <!-- Importar Dados -->
+    <div class="import-section" id="importSection">
+        <h3>📁 Importar Dados</h3>
+        <p>Carregue os dados exportados do scanner (JSON ou PDF)</p>
+        <div class="file-input-wrapper">
+            <input type="file" id="fileInput" accept=".json,.pdf" />
+            <label class="file-input-label" for="fileInput">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Selecionar Arquivo
+            </label>
+        </div>
+        <div class="supported-formats">
+            ✅ Formatos aceitos: JSON (rápido) ou PDF (automático)
+        </div>
+        <div class="last-update" id="lastUpdate" style="display: none;">
+            <span>⏱️ Última atualização: <strong id="updateTime">-</strong></span>
+            <button class="refresh-btn" onclick="document.getElementById('fileInput').click()">
+                🔄 Atualizar
+            </button>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div id="mainContent" style="display: none;">
+        <!-- Estatísticas Gerais -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="icon">📄</div>
+                <div class="label">Total de Notas</div>
+                <div class="value" id="totalNotas">0</div>
+                <div class="trend" id="trendNotas">-</div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="icon">👥</div>
+                <div class="label">Colaboradores Ativos</div>
+                <div class="value" id="totalColaboradores">0</div>
+                <div class="trend" id="trendColaboradores">-</div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="icon">🏪</div>
+                <div class="label">Lojas Atendidas</div>
+                <div class="value" id="totalLojas">0</div>
+                <div class="trend" id="trendLojas">-</div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="icon">⚡</div>
+                <div class="label">Média por Colaborador</div>
+                <div class="value" id="mediaPorColaborador">0</div>
+                <div class="trend" id="trendMedia">-</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card full-width">
+            <h3>🔍 Filtros</h3>
+            <div class="filters">
+                <select id="filterPeriodo" onchange="aplicarFiltros()">
+                    <option value="all">Todos os Períodos</option>
+                    <option value="today">Hoje</option>
+                    <option value="week">Última Semana</option>
+                    <option value="month">Último Mês</option>
+                </select>
+                <select id="filterLoja" onchange="aplicarFiltros()">
+                    <option value="all">Todas as Lojas</option>
+                </select>
+                <select id="filterColaborador" onchange="aplicarFiltros()">
+                    <option value="all">Todos os Colaboradores</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Gráficos e Rankings -->
+        <div class="content-grid">
+            <!-- Ranking de Colaboradores -->
+            <div class="card">
+                <h3>🏆 Ranking de Colaboradores</h3>
+                <div class="ranking-list" id="rankingColaboradores">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <p>Nenhum dado disponível</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desempenho por Loja -->
+            <div class="card">
+                <h3>🏪 Desempenho por Loja</h3>
+                <div class="chart-container">
+                    <canvas id="chartLojas"></canvas>
+                </div>
+            </div>
+
+            <!-- Evolução Temporal -->
+            <div class="card full-width">
+                <h3>📈 Evolução ao Longo do Tempo</h3>
+                <div class="chart-container">
+                    <canvas id="chartTemporal"></canvas>
+                </div>
+            </div>
+
+            <!-- Detalhamento por Loja -->
+            <div class="card full-width">
+                <h3>📋 Detalhamento por Loja</h3>
+                <table class="table" id="tabelaLojas">
+                    <thead>
+                        <tr>
+                            <th>Loja</th>
+                            <th>Total de NFs</th>
+                            <th>Colaboradores</th>
+                            <th>Média/Colaborador</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #9ca3af; padding: 40px;">
+                                Nenhum dado disponível
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biblioteca Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Biblioteca PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <script>
+        // Configurar PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let notasFiscais = [];
+        let dadosFiltrados = [];
+        let chartLojas = null;
+        let chartTemporal = null;
+
+        // Carregar dados do arquivo
+        document.getElementById('fileInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fileName = file.name.toLowerCase();
+            
+            if (fileName.endsWith('.json')) {
+                carregarJSON(file);
+            } else if (fileName.endsWith('.pdf')) {
+                await carregarPDF(file);
+            } else {
+                alert('Formato não suportado. Use JSON ou PDF.');
+            }
+        });
+
+        function carregarJSON(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    processarDados(data);
+                } catch (error) {
+                    alert('Erro ao ler JSON: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function carregarPDF(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                let textoCompleto = '';
+                
+                // Extrair texto de todas as páginas
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    textoCompleto += pageText + '\n';
+                }
+                
+                // Processar texto extraído
+                const notas = extrairNotasDoPDF(textoCompleto);
+                
+                if (notas.length === 0) {
+                    alert('Nenhuma nota fiscal encontrada no PDF. Verifique se o arquivo está correto.');
+                    return;
+                }
+                
+                processarDados(notas);
+                
+            } catch (error) {
+                alert('Erro ao ler PDF: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        function extrairNotasDoPDF(texto) {
+            const notas = [];
+            const linhas = texto.split('\n');
+            
+            let lojaAtual = null;
+            
+            for (let i = 0; i < linhas.length; i++) {
+                const linha = linhas[i].trim();
+                
+                // Detectar loja
+                if (linha.includes('Loja:')) {
+                    lojaAtual = linha.replace('Loja:', '').trim();
+                    continue;
+                }
+                
+                // Detectar colaborador
+                if (linha.includes('Colaborador:')) {
+                    const colaborador = linha.replace('Colaborador:', '').trim();
+                    
+                    // Procurar NF nas próximas linhas
+                    for (let j = i + 1; j < Math.min(i + 5, linhas.length); j++) {
+                        const proximaLinha = linhas[j].trim();
+                        
+                        if (proximaLinha.includes('NF:')) {
+                            const numeroNF = proximaLinha.replace('NF:', '').trim();
+                            
+                            // Procurar data
+                            for (let k = j + 1; k < Math.min(j + 3, linhas.length); k++) {
+                                const linhaData = linhas[k].trim();
+                                
+                                if (linhaData.includes('Data:')) {
+                                    const dataHora = linhaData.replace('Data:', '').trim();
+                                    
+                                    notas.push({
+                                        colaborador: colaborador,
+                                        loja: lojaAtual,
+                                        numeroNF: numeroNF,
+                                        dataHora: dataHora,
+                                        id: notas.length + 1
+                                    });
+                                    
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            return notas;
+        }
+
+        function processarDados(data) {
+            notasFiscais = data;
+            dadosFiltrados = data;
+            
+            // Esconder importação, mostrar conteúdo
+            document.getElementById('importSection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // Atualizar última atualização
+            document.getElementById('lastUpdate').style.display = 'flex';
+            document.getElementById('updateTime').textContent = new Date().toLocaleString('pt-BR');
+            
+            // Atualizar dashboard
+            atualizarDashboard();
+            preencherFiltros();
+        }
+
+        function preencherFiltros() {
+            const lojas = [...new Set(notasFiscais.map(n => n.loja))].sort();
+            const filterLoja = document.getElementById('filterLoja');
+            filterLoja.innerHTML = '<option value="all">Todas as Lojas</option>';
+            lojas.forEach(loja => {
+                filterLoja.innerHTML += `<option value="${loja}">${loja}</option>`;
+            });
+
+            const colaboradores = [...new Set(notasFiscais.map(n => n.colaborador))].sort();
+            const filterColaborador = document.getElementById('filterColaborador');
+            filterColaborador.innerHTML = '<option value="all">Todos os Colaboradores</option>';
+            colaboradores.forEach(colab => {
+                filterColaborador.innerHTML += `<option value="${colab}">${colab}</option>`;
+            });
+        }
+
+        function aplicarFiltros() {
+            const periodo = document.getElementById('filterPeriodo').value;
+            const loja = document.getElementById('filterLoja').value;
+            const colaborador = document.getElementById('filterColaborador').value;
+
+            dadosFiltrados = notasFiscais.filter(nota => {
+                if (periodo !== 'all') {
+                    const dataHora = nota.dataHora || nota.timestamp;
+                    const dataNota = parseDataBrasileira(dataHora);
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+
+                    if (periodo === 'today') {
+                        const notaData = new Date(dataNota);
+                        notaData.setHours(0, 0, 0, 0);
+                        if (notaData.getTime() !== hoje.getTime()) return false;
+                    } else if (periodo === 'week') {
+                        const semanaAtras = new Date(hoje);
+                        semanaAtras.setDate(semanaAtras.getDate() - 7);
+                        if (dataNota < semanaAtras) return false;
+                    } else if (periodo === 'month') {
+                        const mesAtras = new Date(hoje);
+                        mesAtras.setMonth(mesAtras.getMonth() - 1);
+                        if (dataNota < mesAtras) return false;
+                    }
+                }
+
+                if (loja !== 'all' && nota.loja !== loja) return false;
+                if (colaborador !== 'all' && nota.colaborador !== colaborador) return false;
+
+                return true;
+            });
+
+            atualizarDashboard();
+        }
+
+        function parseDataBrasileira(dataStr) {
+            const partes = dataStr.split(',')[0].split('/');
+            if (partes.length === 3) {
+                return new Date(partes[2], partes[1] - 1, partes[0]);
+            }
+            return new Date();
+        }
+
+        function atualizarDashboard() {
+            atualizarEstatisticas();
+            atualizarRankingColaboradores();
+            atualizarGraficoLojas();
+            atualizarGraficoTemporal();
+            atualizarTabelaLojas();
+        }
+
+        function atualizarEstatisticas() {
+            const totalNotas = dadosFiltrados.length;
+            const colaboradores = new Set(dadosFiltrados.map(n => n.colaborador));
+            const lojas = new Set(dadosFiltrados.map(n => n.loja));
+            const mediaPorColab = colaboradores.size > 0 ? Math.round(totalNotas / colaboradores.size) : 0;
+
+            document.getElementById('totalNotas').textContent = totalNotas;
+            document.getElementById('totalColaboradores').textContent = colaboradores.size;
+            document.getElementById('totalLojas').textContent = lojas.size;
+            document.getElementById('mediaPorColaborador').textContent = mediaPorColab;
+
+            document.getElementById('trendNotas').textContent = `${totalNotas} notas processadas`;
+            document.getElementById('trendColaboradores').textContent = `${colaboradores.size} ativos`;
+            document.getElementById('trendLojas').textContent = `${lojas.size} em operação`;
+            document.getElementById('trendMedia').textContent = `${mediaPorColab} NFs/pessoa`;
+        }
+
+        function atualizarRankingColaboradores() {
+            const ranking = {};
+            dadosFiltrados.forEach(nota => {
+                if (!ranking[nota.colaborador]) {
+                    ranking[nota.colaborador] = {
+                        nome: nota.colaborador,
+                        total: 0,
+                        lojas: new Set()
+                    };
+                }
+                ranking[nota.colaborador].total++;
+                ranking[nota.colaborador].lojas.add(nota.loja);
+            });
+
+            const rankingArray = Object.values(ranking)
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 5);
+
+            const container = document.getElementById('rankingColaboradores');
+            
+            if (rankingArray.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <p>Nenhum dado disponível</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = rankingArray.map((item, index) => {
+                let positionClass = 'regular';
+                if (index === 0) positionClass = 'gold';
+                else if (index === 1) positionClass = 'silver';
+                else if (index === 2) positionClass = 'bronze';
+
+                return `
+                    <div class="ranking-item">
+                        <div class="ranking-position ${positionClass}">${index + 1}º</div>
+                        <div class="ranking-info">
+                            <div class="ranking-name">${item.nome}</div>
+                            <div class="ranking-loja">${item.lojas.size} loja(s)</div>
+                        </div>
+                        <div class="ranking-value">${item.total}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function atualizarGraficoLojas() {
+            const ctx = document.getElementById('chartLojas');
+            
+            const lojas = {};
+            dadosFiltrados.forEach(nota => {
+                lojas[nota.loja] = (lojas[nota.loja] || 0) + 1;
+            });
+
+            const dados = Object.entries(lojas)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            if (chartLojas) {
+                chartLojas.destroy();
+            }
+
+            chartLojas = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dados.map(d => d[0]),
+                    datasets: [{
+                        label: 'Notas Fiscais',
+                        data: dados.map(d => d[1]),
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function atualizarGraficoTemporal() {
+            const ctx = document.getElementById('chartTemporal');
+            
+            const porData = {};
+            dadosFiltrados.forEach(nota => {
+                const dataStr = nota.dataHora.split(',')[0];
+                porData[dataStr] = (porData[dataStr] || 0) + 1;
+            });
+
+            const dados = Object.entries(porData)
+                .sort((a, b) => {
+                    const dateA = parseDataBrasileira(a[0]);
+                    const dateB = parseDataBrasileira(b[0]);
+                    return dateA - dateB;
+                });
+
+            if (chartTemporal) {
+                chartTemporal.destroy();
+            }
+
+            chartTemporal = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dados.map(d => d[0]),
+                    datasets: [{
+                        label: 'Notas por Dia',
+                        data: dados.map(d => d[1]),
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: 'rgba(102, 126, 234, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function atualizarTabelaLojas() {
+            const lojas = {};
+            dadosFiltrados.forEach(nota => {
+                if (!lojas[nota.loja]) {
+                    lojas[nota.loja] = {
+                        total: 0,
+                        colaboradores: new Set()
+                    };
+                }
+                lojas[nota.loja].total++;
+                lojas[nota.loja].colaboradores.add(nota.colaborador);
+            });
+
+            const tbody = document.querySelector('#tabelaLojas tbody');
+            
+            if (Object.keys(lojas).length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #9ca3af; padding: 40px;">
+                            Nenhum dado disponível
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = Object.entries(lojas)
+                .sort((a, b) => b[1].total - a[1].total)
+                .map(([loja, dados]) => {
+                    const media = Math.round(dados.total / dados.colaboradores.size);
+                    let badge = 'success';
+                    let status = 'Ótimo';
+                    
+                    if (media < 10) {
+                        badge = 'warning';
+                        status = 'Regular';
+                    }
+                    if (media < 5) {
+                        badge = 'info';
+                        status = 'Baixo';
+                    }
+
+                    return `
+                        <tr>
+                            <td><strong>${loja}</strong></td>
+                            <td>${dados.total}</td>
+                            <td>${dados.colaboradores.size}</td>
+                            <td>${media} NFs</td>
+                            <td><span class="badge ${badge}">${status}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard híbrido iniciado! Aceita JSON e PDF.');
+        });
+    </script>
+</body>
+</html>
+
