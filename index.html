@@ -706,6 +706,8 @@
                         const notasArray = Array.isArray(data) ? data : [data];
                         arquivosCarregados[file.name] = notasArray.length;
                         notasFiscais = notasFiscais.concat(notasArray);
+                        dadosFiltrados = notasFiscais;
+                        preencherFiltros();
                         atualizarDashboard();
                         atualizarListaArquivos();
                         resolve();
@@ -742,6 +744,8 @@
                 } else {
                     arquivosCarregados[file.name] = notas.length;
                     notasFiscais = notasFiscais.concat(notas);
+                    dadosFiltrados = notasFiscais;
+                    preencherFiltros();
                     atualizarDashboard();
                     atualizarListaArquivos();
                     console.log(`✅ ${notas.length} notas extraídas de ${file.name}`);
@@ -948,7 +952,22 @@
             atualizarGraficoLojas();
             atualizarGraficoTemporal();
             atualizarTabelaLojas();
-            preencherFiltros();
+        }
+
+        function preencherFiltros() {
+            const lojas = [...new Set(notasFiscais.map(n => n.loja))].sort();
+            const filterLoja = document.getElementById('filterLoja');
+            filterLoja.innerHTML = '<option value="all">Todas as Lojas</option>';
+            lojas.forEach(loja => {
+                filterLoja.innerHTML += `<option value="${loja}">${loja}</option>`;
+            });
+
+            const colaboradores = [...new Set(notasFiscais.map(n => n.colaborador))].sort();
+            const filterColaborador = document.getElementById('filterColaborador');
+            filterColaborador.innerHTML = '<option value="all">Todos os Colaboradores</option>';
+            colaboradores.forEach(colab => {
+                filterColaborador.innerHTML += `<option value="${colab}">${colab}</option>`;
+            });
         }
 
         function atualizarEstatisticas() {
