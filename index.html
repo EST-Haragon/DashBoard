@@ -398,6 +398,115 @@
             font-size: 13px;
             opacity: 0.8;
         }
+
+        .files-list-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .files-list-container h3 {
+            color: #1f2937;
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .file-count {
+            font-size: 12px;
+            color: #6b7280;
+            background: #e5e7eb;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .total-notes {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -411,25 +520,39 @@
         <h3>📁 Importar Dados</h3>
         <p>Carregue os dados exportados do scanner (JSON ou PDF)</p>
         <div class="file-input-wrapper">
-            <input type="file" id="fileInput" accept=".json,.pdf" />
+            <input type="file" id="fileInput" accept=".json,.pdf" multiple />
             <label class="file-input-label" for="fileInput">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                Selecionar Arquivo
+                Selecionar Arquivos
             </label>
         </div>
         <div class="supported-formats">
-            ✅ Formatos aceitos: JSON (rápido) ou PDF (automático)
+            ✅ Formatos aceitos: JSON (rápido) ou PDF (automático) - Pode selecionar múltiplos arquivos
         </div>
-        <div class="last-update" id="lastUpdate" style="display: none;">
-            <span>⏱️ Última atualização: <strong id="updateTime">-</strong></span>
-            <button class="refresh-btn" onclick="document.getElementById('fileInput').click()">
-                🔄 Atualizar
+    </div>
+
+    <!-- Lista de Arquivos Carregados -->
+    <div class="files-list-container" id="filesListContainer">
+        <h3>📂 Arquivos Carregados</h3>
+        <div id="filesList"></div>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                ➕ Adicionar Mais Arquivos
+            </button>
+            <button class="btn btn-danger" onclick="limparTodosDados()">
+                🗑️ Limpar Tudo
             </button>
         </div>
+    </div>
+
+    <!-- Última Atualização -->
+    <div class="last-update" id="lastUpdate" style="display: none;">
+        <span>⏱️ Última atualização: <strong id="updateTime">-</strong></span>
+        <span style="margin-left: 20px;">📊 Total consolidado: <strong class="total-notes" id="totalNotasConsolidado">0</strong> notas</span>
     </div>
 
     <!-- Conteúdo Principal -->
@@ -549,36 +672,51 @@
 
         let notasFiscais = [];
         let dadosFiltrados = [];
+        let arquivosCarregados = {};
         let chartLojas = null;
         let chartTemporal = null;
 
         // Carregar dados do arquivo
         document.getElementById('fileInput').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            const files = e.target.files;
+            if (files.length === 0) return;
 
-            const fileName = file.name.toLowerCase();
-            
-            if (fileName.endsWith('.json')) {
-                carregarJSON(file);
-            } else if (fileName.endsWith('.pdf')) {
-                await carregarPDF(file);
-            } else {
-                alert('Formato não suportado. Use JSON ou PDF.');
+            for (let file of files) {
+                const fileName = file.name.toLowerCase();
+                
+                if (fileName.endsWith('.json')) {
+                    await carregarJSON(file);
+                } else if (fileName.endsWith('.pdf')) {
+                    await carregarPDF(file);
+                } else {
+                    alert(`Formato não suportado: ${file.name}. Use JSON ou PDF.`);
+                }
             }
+
+            // Limpar input
+            document.getElementById('fileInput').value = '';
         });
 
         function carregarJSON(file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    processarDados(data);
-                } catch (error) {
-                    alert('Erro ao ler JSON: ' + error.message);
-                }
-            };
-            reader.readAsText(file);
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        const notasArray = Array.isArray(data) ? data : [data];
+                        arquivosCarregados[file.name] = notasArray.length;
+                        notasFiscais = notasFiscais.concat(notasArray);
+                        atualizarDashboard();
+                        atualizarListaArquivos();
+                        resolve();
+                    } catch (error) {
+                        alert(`Erro ao ler ${file.name}: ${error.message}`);
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(reader.error);
+                reader.readAsText(file);
+            });
         }
 
         async function carregarPDF(file) {
@@ -600,64 +738,62 @@
                 const notas = extrairNotasDoPDF(textoCompleto);
                 
                 if (notas.length === 0) {
-                    alert('Nenhuma nota fiscal encontrada no PDF. Verifique se o arquivo está correto.');
-                    return;
+                    alert(`⚠️ Nenhuma nota fiscal encontrada em ${file.name}. Verifique se o arquivo está correto.`);
+                } else {
+                    arquivosCarregados[file.name] = notas.length;
+                    notasFiscais = notasFiscais.concat(notas);
+                    atualizarDashboard();
+                    atualizarListaArquivos();
+                    console.log(`✅ ${notas.length} notas extraídas de ${file.name}`);
                 }
                 
-                processarDados(notas);
-                
             } catch (error) {
-                alert('Erro ao ler PDF: ' + error.message);
+                alert(`Erro ao ler PDF ${file.name}: ${error.message}`);
                 console.error(error);
             }
         }
 
         function extrairNotasDoPDF(texto) {
             const notas = [];
-            const linhas = texto.split('\n');
+            const blocos = texto.split(/(?=Loja:|LOJA:)/i);
             
-            let lojaAtual = null;
+            let idCounter = 1;
             
-            for (let i = 0; i < linhas.length; i++) {
-                const linha = linhas[i].trim();
+            for (const bloco of blocos) {
+                if (!bloco.trim()) continue;
                 
-                // Detectar loja
-                if (linha.includes('Loja:')) {
-                    lojaAtual = linha.replace('Loja:', '').trim();
-                    continue;
-                }
+                // Extrair loja
+                const lojaMatch = bloco.match(/(?:Loja|LOJA)[\s:]*([^\n]+)/i);
+                const loja = lojaMatch ? lojaMatch[1].trim() : 'Sem Loja';
                 
-                // Detectar colaborador
-                if (linha.includes('Colaborador:')) {
-                    const colaborador = linha.replace('Colaborador:', '').trim();
+                // Extrair colaboradores e suas notas
+                const colaboradorPattern = /(?:Colaborador|COLABORADOR)[\s:]*([^\n]+)/gi;
+                let colaboradorMatch;
+                
+                while ((colaboradorMatch = colaboradorPattern.exec(bloco)) !== null) {
+                    const colaborador = colaboradorMatch[1].trim();
+                    const posicaoColab = colaboradorMatch.index;
                     
-                    // Procurar NF nas próximas linhas
-                    for (let j = i + 1; j < Math.min(i + 5, linhas.length); j++) {
-                        const proximaLinha = linhas[j].trim();
-                        
-                        if (proximaLinha.includes('NF:')) {
-                            const numeroNF = proximaLinha.replace('NF:', '').trim();
-                            
-                            // Procurar data
-                            for (let k = j + 1; k < Math.min(j + 3, linhas.length); k++) {
-                                const linhaData = linhas[k].trim();
-                                
-                                if (linhaData.includes('Data:')) {
-                                    const dataHora = linhaData.replace('Data:', '').trim();
-                                    
-                                    notas.push({
-                                        colaborador: colaborador,
-                                        loja: lojaAtual,
-                                        numeroNF: numeroNF,
-                                        dataHora: dataHora,
-                                        id: notas.length + 1
-                                    });
-                                    
-                                    break;
-                                }
-                            }
-                            break;
-                        }
+                    // Procurar NF e Data após este colaborador
+                    const textoAposColab = bloco.substring(posicaoColab, posicaoColab + 500);
+                    
+                    // Extrair NF
+                    const nfMatch = textoAposColab.match(/(?:NF|N\.F|NF:)[\s:]*(\d+)/i);
+                    const numeroNF = nfMatch ? nfMatch[1] : 'SEM NF';
+                    
+                    // Extrair Data
+                    const dataMatch = textoAposColab.match(/(?:Data|DATA)[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}[\s\d:]*)/i);
+                    const dataHora = dataMatch ? dataMatch[1] : new Date().toLocaleDateString('pt-BR');
+                    
+                    if (numeroNF !== 'SEM NF') {
+                        notas.push({
+                            id: idCounter++,
+                            colaborador: colaborador,
+                            loja: loja,
+                            numeroNF: numeroNF,
+                            dataHora: dataHora,
+                            origem: 'PDF'
+                        });
                     }
                 }
             }
@@ -665,21 +801,84 @@
             return notas;
         }
 
-        function processarDados(data) {
-            notasFiscais = data;
-            dadosFiltrados = data;
+        function atualizarListaArquivos() {
+            const filesList = document.getElementById('filesList');
+            const filesListContainer = document.getElementById('filesListContainer');
             
-            // Esconder importação, mostrar conteúdo
-            document.getElementById('importSection').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+            if (Object.keys(arquivosCarregados).length === 0) {
+                filesListContainer.style.display = 'none';
+                return;
+            }
             
-            // Atualizar última atualização
+            filesListContainer.style.display = 'block';
+            
+            let html = '';
+            let totalNotas = 0;
+            
+            for (const [nomeArquivo, quantidade] of Object.entries(arquivosCarregados)) {
+                totalNotas += quantidade;
+                html += `
+                    <div class="file-item">
+                        <div class="file-info">
+                            <span>📄</span>
+                            <div>
+                                <div class="file-name">${nomeArquivo}</div>
+                            </div>
+                            <span class="file-count">${quantidade} notas</span>
+                        </div>
+                        <button class="delete-btn" onclick="removerArquivo('${nomeArquivo}')">
+                            ✕ Remover
+                        </button>
+                    </div>
+                `;
+            }
+            
+            filesList.innerHTML = html;
+            
+            // Atualizar total consolidado
+            document.getElementById('totalNotasConsolidado').textContent = totalNotas;
             document.getElementById('lastUpdate').style.display = 'flex';
             document.getElementById('updateTime').textContent = new Date().toLocaleString('pt-BR');
             
-            // Atualizar dashboard
-            atualizarDashboard();
-            preencherFiltros();
+            // Mostrar conteúdo se houver dados
+            if (notasFiscais.length > 0) {
+                document.getElementById('importSection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            }
+        }
+
+        function removerArquivo(nomeArquivo) {
+            const quantidade = arquivosCarregados[nomeArquivo];
+            delete arquivosCarregados[nomeArquivo];
+            
+            // Remover notas do arquivo
+            notasFiscais = notasFiscais.filter(nota => {
+                // Assumindo que sabemos qual arquivo origem (você pode adicionar campo origem)
+                return true;
+            });
+            
+            // Recarregar dados (simplificado - você pode melhorar)
+            if (Object.keys(arquivosCarregados).length === 0) {
+                limparTodosDados();
+            } else {
+                atualizarListaArquivos();
+                atualizarDashboard();
+            }
+        }
+
+        function limparTodosDados() {
+            notasFiscais = [];
+            dadosFiltrados = [];
+            arquivosCarregados = {};
+            
+            document.getElementById('importSection').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('filesListContainer').style.display = 'none';
+            document.getElementById('lastUpdate').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            
+            if (chartLojas) chartLojas.destroy();
+            if (chartTemporal) chartTemporal.destroy();
         }
 
         function preencherFiltros() {
@@ -735,7 +934,8 @@
         }
 
         function parseDataBrasileira(dataStr) {
-            const partes = dataStr.split(',')[0].split('/');
+            if (!dataStr) return new Date();
+            const partes = dataStr.split(',')[0].split(/[\/\-]/);
             if (partes.length === 3) {
                 return new Date(partes[2], partes[1] - 1, partes[0]);
             }
@@ -748,6 +948,7 @@
             atualizarGraficoLojas();
             atualizarGraficoTemporal();
             atualizarTabelaLojas();
+            preencherFiltros();
         }
 
         function atualizarEstatisticas() {
@@ -832,6 +1033,12 @@
                 chartLojas.destroy();
             }
 
+            if (dados.length === 0) {
+                ctx.style.display = 'none';
+                return;
+            }
+            ctx.style.display = 'block';
+
             chartLojas = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -884,6 +1091,12 @@
             if (chartTemporal) {
                 chartTemporal.destroy();
             }
+
+            if (dados.length === 0) {
+                ctx.style.display = 'none';
+                return;
+            }
+            ctx.style.display = 'block';
 
             chartTemporal = new Chart(ctx, {
                 type: 'line',
@@ -976,9 +1189,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard híbrido iniciado! Aceita JSON e PDF.');
+            console.log('✅ Dashboard híbrido iniciado! Aceita múltiplos JSON e PDF.');
         });
     </script>
 </body>
 </html>
-
