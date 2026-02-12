@@ -25,16 +25,58 @@
             border-radius: 16px;
             margin-bottom: 24px;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
-        .header h1 {
+        .header-content h1 {
             font-size: 32px;
             margin-bottom: 8px;
         }
 
-        .header p {
+        .header-content p {
             opacity: 0.9;
             font-size: 16px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 1);
         }
 
         .stats-grid {
@@ -102,10 +144,6 @@
             font-size: 13px;
             color: #10b981;
             font-weight: 600;
-        }
-
-        .stat-card .trend.down {
-            color: #ef4444;
         }
 
         .content-grid {
@@ -261,38 +299,45 @@
             opacity: 0.5;
         }
 
-        .table {
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 16px;
         }
 
-        .table th {
-            text-align: left;
-            padding: 12px;
+        thead {
             background: #f9fafb;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
             font-weight: 600;
-            color: #6b7280;
+            color: #374151;
             font-size: 13px;
-            border-bottom: 2px solid #e5e7eb;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .table td {
-            padding: 12px;
+        td {
+            padding: 16px;
             border-bottom: 1px solid #f3f4f6;
-            color: #4b5563;
+            color: #1f2937;
         }
 
-        .table tbody tr:hover {
+        tr:hover {
             background: #f9fafb;
         }
 
         .badge {
-            display: inline-block;
             padding: 4px 12px;
-            border-radius: 12px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            display: inline-block;
         }
 
         .badge.success {
@@ -310,349 +355,213 @@
             color: #1e40af;
         }
 
-        .import-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .upload-area {
+            border: 3px dashed #d1d5db;
             border-radius: 12px;
-            padding: 32px;
+            padding: 40px;
             text-align: center;
-            margin-bottom: 24px;
-            color: white;
-        }
-
-        .import-section h3 {
-            color: white;
-            margin-bottom: 12px;
-            font-size: 24px;
-        }
-
-        .import-section p {
-            opacity: 0.9;
-            margin-bottom: 24px;
-            font-size: 16px;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .file-input-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 16px 32px;
-            background: white;
-            color: #667eea;
-            border-radius: 8px;
-            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 16px;
-        }
-
-        .file-input-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
-        }
-
-        .last-update {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-            font-size: 14px;
-            margin-top: 16px;
-            justify-content: center;
-            opacity: 0.9;
-        }
-
-        .refresh-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            text-decoration: underline;
-        }
-
-        .refresh-btn:hover {
-            opacity: 0.8;
-        }
-
-        .supported-formats {
-            margin-top: 20px;
-            font-size: 13px;
-            opacity: 0.8;
-        }
-
-        .files-list-container {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-
-        .files-list-container h3 {
-            color: #1f2937;
-            font-size: 18px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px;
             background: #f9fafb;
-            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f3f4f6;
+        }
+
+        .upload-area.dragging {
+            border-color: #667eea;
+            background: #ede9fe;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #9ca3af;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: #6b7280;
             margin-bottom: 8px;
         }
 
-        .file-info {
+        .upload-hint {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
             gap: 12px;
-            flex: 1;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
         }
 
-        .file-name {
-            font-weight: 600;
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast-message {
             color: #1f2937;
+            font-weight: 500;
         }
 
-        .file-count {
-            font-size: 12px;
-            color: #6b7280;
-            background: #e5e7eb;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-
-        .delete-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
+        .storage-info {
+            background: #ede9fe;
+            border-left: 4px solid #667eea;
+            padding: 12px 16px;
             border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            margin-bottom: 20px;
             font-size: 14px;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-        }
-
-        .total-notes {
-            color: #667eea;
-            font-weight: 700;
-            font-size: 16px;
+            color: #5b21b6;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📊 Dashboard - Scanner DANFE</h1>
-        <p>Visão completa da produtividade e desempenho</p>
-    </div>
-
-    <!-- Importar Dados -->
-    <div class="import-section" id="importSection">
-        <h3>📁 Importar Dados</h3>
-        <p>Carregue os dados exportados do scanner (JSON ou PDF)</p>
-        <div class="file-input-wrapper">
-            <input type="file" id="fileInput" accept=".json,.pdf" multiple />
-            <label class="file-input-label" for="fileInput">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-                Selecionar Arquivos
-            </label>
+        <div class="header-content">
+            <h1>📊 Dashboard DANFE</h1>
+            <p>Análise e monitoramento de notas fiscais em tempo real</p>
         </div>
-        <div class="supported-formats">
-            ✅ Formatos aceitos: JSON (rápido) ou PDF (automático) - Pode selecionar múltiplos arquivos
-        </div>
-    </div>
-
-    <!-- Lista de Arquivos Carregados -->
-    <div class="files-list-container" id="filesListContainer">
-        <h3>📂 Arquivos Carregados</h3>
-        <div id="filesList"></div>
-        <div class="action-buttons">
+        <div class="header-actions">
             <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                ➕ Adicionar Mais Arquivos
+                📤 Importar Dados
             </button>
-            <button class="btn btn-danger" onclick="limparTodosDados()">
-                🗑️ Limpar Tudo
+            <button class="btn btn-danger" onclick="limparDados()">
+                🗑️ Limpar Dados
             </button>
         </div>
     </div>
 
-    <!-- Última Atualização -->
-    <div class="last-update" id="lastUpdate" style="display: none;">
-        <span>⏱️ Última atualização: <strong id="updateTime">-</strong></span>
-        <span style="margin-left: 20px;">📊 Total consolidado: <strong class="total-notes" id="totalNotasConsolidado">0</strong> notas</span>
+    <div class="storage-info" id="storageInfo">
+        💾 Dados salvos localmente: <strong id="dadosSalvos">0</strong> notas fiscais
     </div>
 
-    <!-- Conteúdo Principal -->
-    <div id="mainContent" style="display: none;">
-        <!-- Estatísticas Gerais -->
-        <div class="stats-grid">
-            <div class="stat-card primary">
-                <div class="icon">📄</div>
-                <div class="label">Total de Notas</div>
-                <div class="value" id="totalNotas">0</div>
-                <div class="trend" id="trendNotas">-</div>
-            </div>
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">Clique ou arraste arquivos aqui</div>
+        <div class="upload-hint">Suporta JSON e PDF (múltiplos arquivos)</div>
+        <input type="file" id="fileInput" multiple accept=".json,.pdf">
+    </div>
 
-            <div class="stat-card success">
-                <div class="icon">👥</div>
-                <div class="label">Colaboradores Ativos</div>
-                <div class="value" id="totalColaboradores">0</div>
-                <div class="trend" id="trendColaboradores">-</div>
-            </div>
+    <div class="filters">
+        <select id="filterPeriodo" onchange="filtrarDados()">
+            <option value="all">Todo o Período</option>
+            <option value="today">Hoje</option>
+            <option value="week">Esta Semana</option>
+            <option value="month">Este Mês</option>
+        </select>
+        <select id="filterLoja" onchange="filtrarDados()">
+            <option value="all">Todas as Lojas</option>
+        </select>
+        <select id="filterColaborador" onchange="filtrarDados()">
+            <option value="all">Todos os Colaboradores</option>
+        </select>
+    </div>
 
-            <div class="stat-card warning">
-                <div class="icon">🏪</div>
-                <div class="label">Lojas Atendidas</div>
-                <div class="value" id="totalLojas">0</div>
-                <div class="trend" id="trendLojas">-</div>
-            </div>
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <div class="icon">📄</div>
+            <div class="label">Total de Notas</div>
+            <div class="value" id="totalNotas">0</div>
+            <div class="trend" id="trendNotas">-</div>
+        </div>
+        <div class="stat-card success">
+            <div class="icon">👥</div>
+            <div class="label">Colaboradores Ativos</div>
+            <div class="value" id="totalColaboradores">0</div>
+            <div class="trend" id="trendColaboradores">-</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="icon">🏪</div>
+            <div class="label">Lojas em Operação</div>
+            <div class="value" id="totalLojas">0</div>
+            <div class="trend" id="trendLojas">-</div>
+        </div>
+        <div class="stat-card info">
+            <div class="icon">📊</div>
+            <div class="label">Média por Colaborador</div>
+            <div class="value" id="mediaPorColaborador">0</div>
+            <div class="trend" id="trendMedia">-</div>
+        </div>
+    </div>
 
-            <div class="stat-card info">
-                <div class="icon">⚡</div>
-                <div class="label">Média por Colaborador</div>
-                <div class="value" id="mediaPorColaborador">0</div>
-                <div class="trend" id="trendMedia">-</div>
+    <div class="content-grid">
+        <div class="card">
+            <h3>🏆 Top 5 Colaboradores</h3>
+            <div class="ranking-list" id="rankingColaboradores">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <p>Importe dados para visualizar</p>
+                </div>
             </div>
         </div>
 
-        <!-- Filtros -->
+        <div class="card">
+            <h3>📈 Notas por Loja</h3>
+            <div class="chart-container">
+                <canvas id="chartLojas"></canvas>
+            </div>
+        </div>
+
         <div class="card full-width">
-            <h3>🔍 Filtros</h3>
-            <div class="filters">
-                <select id="filterPeriodo" onchange="aplicarFiltros()">
-                    <option value="all">Todos os Períodos</option>
-                    <option value="today">Hoje</option>
-                    <option value="week">Última Semana</option>
-                    <option value="month">Último Mês</option>
-                </select>
-                <select id="filterLoja" onchange="aplicarFiltros()">
-                    <option value="all">Todas as Lojas</option>
-                </select>
-                <select id="filterColaborador" onchange="aplicarFiltros()">
-                    <option value="all">Todos os Colaboradores</option>
-                </select>
+            <h3>📅 Evolução Temporal</h3>
+            <div class="chart-container">
+                <canvas id="chartTemporal"></canvas>
             </div>
         </div>
 
-        <!-- Gráficos e Rankings -->
-        <div class="content-grid">
-            <!-- Ranking de Colaboradores -->
-            <div class="card">
-                <h3>🏆 Ranking de Colaboradores</h3>
-                <div class="ranking-list" id="rankingColaboradores">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📊</div>
-                        <p>Nenhum dado disponível</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Desempenho por Loja -->
-            <div class="card">
-                <h3>🏪 Desempenho por Loja</h3>
-                <div class="chart-container">
-                    <canvas id="chartLojas"></canvas>
-                </div>
-            </div>
-
-            <!-- Evolução Temporal -->
-            <div class="card full-width">
-                <h3>📈 Evolução ao Longo do Tempo</h3>
-                <div class="chart-container">
-                    <canvas id="chartTemporal"></canvas>
-                </div>
-            </div>
-
-            <!-- Detalhamento por Loja -->
-            <div class="card full-width">
-                <h3>📋 Detalhamento por Loja</h3>
-                <table class="table" id="tabelaLojas">
+        <div class="card full-width">
+            <h3>🏪 Desempenho por Loja</h3>
+            <div class="table-container">
+                <table id="tabelaLojas">
                     <thead>
                         <tr>
                             <th>Loja</th>
-                            <th>Total de NFs</th>
+                            <th>Total de Notas</th>
                             <th>Colaboradores</th>
-                            <th>Média/Colaborador</th>
+                            <th>Média</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td colspan="5" style="text-align: center; color: #9ca3af; padding: 40px;">
-                                Nenhum dado disponível
+                                Importe dados para visualizar
                             </td>
                         </tr>
                     </tbody>
@@ -661,70 +570,188 @@
         </div>
     </div>
 
-    <!-- Biblioteca Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Biblioteca PDF.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
     <script>
-        // Configurar PDF.js
+        // Configuração do PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        // Constantes do LocalStorage
+        const STORAGE_KEY = 'danfe_notas_fiscais';
+        
+        // Estado da aplicação
         let notasFiscais = [];
         let dadosFiltrados = [];
-        let arquivosCarregados = {};
         let chartLojas = null;
         let chartTemporal = null;
 
-        // Carregar dados do arquivo
-        document.getElementById('fileInput').addEventListener('change', async function(e) {
-            const files = e.target.files;
-            if (files.length === 0) return;
+        // Carregar dados do localStorage ao iniciar
+        function carregarDadosLocalStorage() {
+            try {
+                const dadosSalvos = localStorage.getItem(STORAGE_KEY);
+                if (dadosSalvos) {
+                    notasFiscais = JSON.parse(dadosSalvos);
+                    console.log(`✅ ${notasFiscais.length} notas carregadas do localStorage`);
+                    mostrarToast('success', `${notasFiscais.length} notas carregadas`);
+                    atualizarDashboard();
+                }
+            } catch (error) {
+                console.error('❌ Erro ao carregar dados:', error);
+                mostrarToast('error', 'Erro ao carregar dados salvos');
+            }
+            atualizarInfoStorage();
+        }
 
-            for (let file of files) {
-                const fileName = file.name.toLowerCase();
-                
-                if (fileName.endsWith('.json')) {
-                    await carregarJSON(file);
-                } else if (fileName.endsWith('.pdf')) {
-                    await carregarPDF(file);
+        // Salvar dados no localStorage
+        function salvarDadosLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(notasFiscais));
+                console.log(`✅ ${notasFiscais.length} notas salvas no localStorage`);
+                atualizarInfoStorage();
+            } catch (error) {
+                console.error('❌ Erro ao salvar dados:', error);
+                if (error.name === 'QuotaExceededError') {
+                    mostrarToast('error', 'Limite de armazenamento excedido');
                 } else {
-                    alert(`Formato não suportado: ${file.name}. Use JSON ou PDF.`);
+                    mostrarToast('error', 'Erro ao salvar dados');
+                }
+            }
+        }
+
+        // Atualizar informação de storage
+        function atualizarInfoStorage() {
+            document.getElementById('dadosSalvos').textContent = notasFiscais.length;
+        }
+
+        // Limpar todos os dados
+        function limparDados() {
+            if (confirm('⚠️ Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                notasFiscais = [];
+                dadosFiltrados = [];
+                atualizarDashboard();
+                mostrarToast('success', 'Dados limpos com sucesso');
+                atualizarInfoStorage();
+            }
+        }
+
+        // Mostrar toast de notificação
+        function mostrarToast(tipo, mensagem) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo}`;
+            
+            const icon = tipo === 'success' ? '✅' : '❌';
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-message">${mensagem}</div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Configurar drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragging');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragging');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragging');
+            const files = e.dataTransfer.files;
+            processarArquivos(files);
+        });
+
+        // Processar seleção de arquivos
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            processarArquivos(e.target.files);
+            e.target.value = ''; // Limpar input para permitir re-upload do mesmo arquivo
+        });
+
+        // Processar múltiplos arquivos (JSON e PDF)
+        async function processarArquivos(files) {
+            if (!files || files.length === 0) return;
+
+            let totalImportadas = 0;
+            let erros = 0;
+
+            for (const file of files) {
+                try {
+                    if (file.type === 'application/json') {
+                        const novasNotas = await processarJSON(file);
+                        totalImportadas += novasNotas;
+                    } else if (file.type === 'application/pdf') {
+                        const novasNotas = await processarPDF(file);
+                        totalImportadas += novasNotas;
+                    } else {
+                        console.warn(`⚠️ Tipo de arquivo não suportado: ${file.name}`);
+                        erros++;
+                    }
+                } catch (error) {
+                    console.error(`❌ Erro ao processar ${file.name}:`, error);
+                    erros++;
                 }
             }
 
-            // Limpar input
-            document.getElementById('fileInput').value = '';
-        });
+            if (totalImportadas > 0) {
+                salvarDadosLocalStorage();
+                atualizarDashboard();
+                mostrarToast('success', `${totalImportadas} notas importadas com sucesso!`);
+            }
 
-        function carregarJSON(file) {
+            if (erros > 0) {
+                mostrarToast('error', `${erros} arquivo(s) com erro`);
+            }
+        }
+
+        // Processar arquivo JSON
+        async function processarJSON(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = function(e) {
                     try {
-                        const data = JSON.parse(event.target.result);
-                        const notasArray = Array.isArray(data) ? data : [data];
-                        arquivosCarregados[file.name] = notasArray.length;
-                        notasFiscais = notasFiscais.concat(notasArray);
-                        dadosFiltrados = notasFiscais;
-                        preencherFiltros();
-                        atualizarDashboard();
-                        atualizarListaArquivos();
-                        resolve();
+                        const dados = JSON.parse(e.target.result);
+                        let novasNotas = 0;
+
+                        if (Array.isArray(dados)) {
+                            dados.forEach(nota => {
+                                if (validarNota(nota)) {
+                                    notasFiscais.push(nota);
+                                    novasNotas++;
+                                }
+                            });
+                        } else if (validarNota(dados)) {
+                            notasFiscais.push(dados);
+                            novasNotas = 1;
+                        }
+
+                        console.log(`✅ JSON processado: ${novasNotas} notas`);
+                        resolve(novasNotas);
                     } catch (error) {
-                        alert(`Erro ao ler ${file.name}: ${error.message}`);
+                        console.error('❌ Erro ao processar JSON:', error);
                         reject(error);
                     }
                 };
-                reader.onerror = () => reject(reader.error);
+                reader.onerror = reject;
                 reader.readAsText(file);
             });
         }
 
-        async function carregarPDF(file) {
+        // Processar arquivo PDF com extração melhorada
+        async function processarPDF(file) {
             try {
                 const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 
                 let textoCompleto = '';
                 
@@ -735,218 +762,166 @@
                     const pageText = textContent.items.map(item => item.str).join(' ');
                     textoCompleto += pageText + '\n';
                 }
+
+                // Processar o texto extraído
+                const notasExtraidas = extrairDadosPDF(textoCompleto);
                 
-                // Processar texto extraído
-                const notas = extrairNotasDoPDF(textoCompleto);
-                
-                if (notas.length === 0) {
-                    alert(`⚠️ Nenhuma nota fiscal encontrada em ${file.name}. Verifique se o arquivo está correto.`);
+                if (notasExtraidas.length > 0) {
+                    notasExtraidas.forEach(nota => {
+                        if (validarNota(nota)) {
+                            notasFiscais.push(nota);
+                        }
+                    });
+                    console.log(`✅ PDF processado: ${notasExtraidas.length} notas extraídas`);
+                    return notasExtraidas.length;
                 } else {
-                    arquivosCarregados[file.name] = notas.length;
-                    notasFiscais = notasFiscais.concat(notas);
-                    dadosFiltrados = notasFiscais;
-                    preencherFiltros();
-                    atualizarDashboard();
-                    atualizarListaArquivos();
-                    console.log(`✅ ${notas.length} notas extraídas de ${file.name}`);
+                    console.warn('⚠️ Nenhuma nota encontrada no PDF');
+                    return 0;
                 }
-                
             } catch (error) {
-                alert(`Erro ao ler PDF ${file.name}: ${error.message}`);
-                console.error(error);
+                console.error('❌ Erro ao processar PDF:', error);
+                throw error;
             }
         }
 
-        function extrairNotasDoPDF(texto) {
+        // Extrair dados do texto do PDF (MELHORADO)
+        function extrairDadosPDF(texto) {
             const notas = [];
-            const blocos = texto.split(/(?=Loja:|LOJA:)/i);
             
-            let idCounter = 1;
+            // Normalizar texto
+            texto = texto.replace(/\s+/g, ' ').trim();
             
-            for (const bloco of blocos) {
-                if (!bloco.trim()) continue;
+            // Padrões de extração mais robustos
+            const patterns = {
+                numeroNF: /(?:N[ºoO°]?\.?\s*NF[-\s:]*|Nota\s+Fiscal\s*N[ºoO°]?\.?\s*|NF[-\s:]*)\s*(\d{6,})/gi,
+                dataHora: /(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})\s*(\d{1,2}:\d{2}(?::\d{2})?)?/gi,
+                loja: /(?:Loja|Filial|Unidade)[\s:]*([A-Za-z0-9\s\-]+?)(?=\s*(?:CNPJ|CPF|Endere[çc]o|$))/gi,
+                colaborador: /(?:Vendedor|Atendente|Colaborador|Operador)[\s:]*([A-Za-z\s]+?)(?=\s*(?:CPF|Matr[íi]cula|$))/gi
+            };
+
+            // Tentar extrair múltiplas notas do mesmo PDF
+            const numerosNF = [...texto.matchAll(patterns.numeroNF)];
+            
+            if (numerosNF.length === 0) {
+                // Fallback: criar uma nota genérica se não encontrar número
+                const dataHoraMatch = texto.match(patterns.dataHora);
+                const lojaMatch = texto.match(patterns.loja);
+                const colaboradorMatch = texto.match(patterns.colaborador);
                 
-                // Extrair loja
-                const lojaMatch = bloco.match(/(?:Loja|LOJA)[\s:]*([^\n]+)/i);
-                const loja = lojaMatch ? lojaMatch[1].trim() : 'Sem Loja';
-                
-                // Extrair colaboradores e suas notas
-                const colaboradorPattern = /(?:Colaborador|COLABORADOR)[\s:]*([^\n]+)/gi;
-                let colaboradorMatch;
-                
-                while ((colaboradorMatch = colaboradorPattern.exec(bloco)) !== null) {
-                    const colaborador = colaboradorMatch[1].trim();
-                    const posicaoColab = colaboradorMatch.index;
+                notas.push({
+                    numeroNF: `PDF-${Date.now()}`,
+                    dataHora: dataHoraMatch ? `${dataHoraMatch[1]} ${dataHoraMatch[2] || '00:00'}` : formatarDataHora(new Date()),
+                    loja: lojaMatch ? lojaMatch[1].trim() : 'Loja Não Identificada',
+                    colaborador: colaboradorMatch ? colaboradorMatch[1].trim() : 'Colaborador Não Identificado'
+                });
+            } else {
+                // Processar cada nota encontrada
+                numerosNF.forEach((match, index) => {
+                    const numeroNF = match[1];
                     
-                    // Procurar NF e Data após este colaborador
-                    const textoAposColab = bloco.substring(posicaoColab, posicaoColab + 500);
+                    // Buscar dados próximos ao número da NF
+                    const posicao = match.index;
+                    const contexto = texto.substring(Math.max(0, posicao - 200), Math.min(texto.length, posicao + 300));
                     
-                    // Extrair NF
-                    const nfMatch = textoAposColab.match(/(?:NF|N\.F|NF:)[\s:]*(\d+)/i);
-                    const numeroNF = nfMatch ? nfMatch[1] : 'SEM NF';
+                    const dataHoraMatch = contexto.match(patterns.dataHora);
+                    const lojaMatch = contexto.match(patterns.loja);
+                    const colaboradorMatch = contexto.match(patterns.colaborador);
                     
-                    // Extrair Data
-                    const dataMatch = textoAposColab.match(/(?:Data|DATA)[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}[\s\d:]*)/i);
-                    const dataHora = dataMatch ? dataMatch[1] : new Date().toLocaleDateString('pt-BR');
-                    
-                    if (numeroNF !== 'SEM NF') {
-                        notas.push({
-                            id: idCounter++,
-                            colaborador: colaborador,
-                            loja: loja,
-                            numeroNF: numeroNF,
-                            dataHora: dataHora,
-                            origem: 'PDF'
-                        });
-                    }
-                }
+                    notas.push({
+                        numeroNF: numeroNF,
+                        dataHora: dataHoraMatch ? `${dataHoraMatch[1]} ${dataHoraMatch[2] || '00:00'}` : formatarDataHora(new Date()),
+                        loja: lojaMatch ? lojaMatch[1].trim() : 'Loja Não Identificada',
+                        colaborador: colaboradorMatch ? colaboradorMatch[1].trim() : 'Colaborador Não Identificado'
+                    });
+                });
             }
-            
+
             return notas;
         }
 
-        function atualizarListaArquivos() {
-            const filesList = document.getElementById('filesList');
-            const filesListContainer = document.getElementById('filesListContainer');
-            
-            if (Object.keys(arquivosCarregados).length === 0) {
-                filesListContainer.style.display = 'none';
-                return;
-            }
-            
-            filesListContainer.style.display = 'block';
-            
-            let html = '';
-            let totalNotas = 0;
-            
-            for (const [nomeArquivo, quantidade] of Object.entries(arquivosCarregados)) {
-                totalNotas += quantidade;
-                html += `
-                    <div class="file-item">
-                        <div class="file-info">
-                            <span>📄</span>
-                            <div>
-                                <div class="file-name">${nomeArquivo}</div>
-                            </div>
-                            <span class="file-count">${quantidade} notas</span>
-                        </div>
-                        <button class="delete-btn" onclick="removerArquivo('${nomeArquivo}')">
-                            ✕ Remover
-                        </button>
-                    </div>
-                `;
-            }
-            
-            filesList.innerHTML = html;
-            
-            // Atualizar total consolidado
-            document.getElementById('totalNotasConsolidado').textContent = totalNotas;
-            document.getElementById('lastUpdate').style.display = 'flex';
-            document.getElementById('updateTime').textContent = new Date().toLocaleString('pt-BR');
-            
-            // Mostrar conteúdo se houver dados
-            if (notasFiscais.length > 0) {
-                document.getElementById('importSection').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-            }
+        // Formatar data/hora
+        function formatarDataHora(date) {
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            const hora = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${dia}/${mes}/${ano}, ${hora}:${min}`;
         }
 
-        function removerArquivo(nomeArquivo) {
-            const quantidade = arquivosCarregados[nomeArquivo];
-            delete arquivosCarregados[nomeArquivo];
-            
-            // Remover notas do arquivo
-            notasFiscais = notasFiscais.filter(nota => {
-                // Assumindo que sabemos qual arquivo origem (você pode adicionar campo origem)
-                return true;
-            });
-            
-            // Recarregar dados (simplificado - você pode melhorar)
-            if (Object.keys(arquivosCarregados).length === 0) {
-                limparTodosDados();
-            } else {
-                atualizarListaArquivos();
-                atualizarDashboard();
-            }
+        // Validar estrutura da nota
+        function validarNota(nota) {
+            return nota && 
+                   nota.numeroNF && 
+                   nota.dataHora && 
+                   nota.loja && 
+                   nota.colaborador;
         }
 
-        function limparTodosDados() {
-            notasFiscais = [];
-            dadosFiltrados = [];
-            arquivosCarregados = {};
-            
-            document.getElementById('importSection').style.display = 'block';
-            document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('filesListContainer').style.display = 'none';
-            document.getElementById('lastUpdate').style.display = 'none';
-            document.getElementById('fileInput').value = '';
-            
-            if (chartLojas) chartLojas.destroy();
-            if (chartTemporal) chartTemporal.destroy();
+        // Parsear data brasileira
+        function parseDataBrasileira(dataStr) {
+            const [dia, mes, ano] = dataStr.split('/').map(Number);
+            return new Date(ano, mes - 1, dia);
         }
 
-        function preencherFiltros() {
-            const lojas = [...new Set(notasFiscais.map(n => n.loja))].sort();
-            const filterLoja = document.getElementById('filterLoja');
-            filterLoja.innerHTML = '<option value="all">Todas as Lojas</option>';
-            lojas.forEach(loja => {
-                filterLoja.innerHTML += `<option value="${loja}">${loja}</option>`;
-            });
-
-            const colaboradores = [...new Set(notasFiscais.map(n => n.colaborador))].sort();
-            const filterColaborador = document.getElementById('filterColaborador');
-            filterColaborador.innerHTML = '<option value="all">Todos os Colaboradores</option>';
-            colaboradores.forEach(colab => {
-                filterColaborador.innerHTML += `<option value="${colab}">${colab}</option>`;
-            });
-        }
-
-        function aplicarFiltros() {
+        // Filtrar dados
+        function filtrarDados() {
             const periodo = document.getElementById('filterPeriodo').value;
             const loja = document.getElementById('filterLoja').value;
             const colaborador = document.getElementById('filterColaborador').value;
 
             dadosFiltrados = notasFiscais.filter(nota => {
+                let passaPeriodo = true;
+                let passaLoja = true;
+                let passaColaborador = true;
+
+                // Filtro de período
                 if (periodo !== 'all') {
-                    const dataHora = nota.dataHora || nota.timestamp;
-                    const dataNota = parseDataBrasileira(dataHora);
+                    const dataStr = nota.dataHora.split(',')[0];
+                    const dataNota = parseDataBrasileira(dataStr);
                     const hoje = new Date();
                     hoje.setHours(0, 0, 0, 0);
 
                     if (periodo === 'today') {
-                        const notaData = new Date(dataNota);
-                        notaData.setHours(0, 0, 0, 0);
-                        if (notaData.getTime() !== hoje.getTime()) return false;
+                        const dataNotaSemHora = new Date(dataNota);
+                        dataNotaSemHora.setHours(0, 0, 0, 0);
+                        passaPeriodo = dataNotaSemHora.getTime() === hoje.getTime();
                     } else if (periodo === 'week') {
-                        const semanaAtras = new Date(hoje);
-                        semanaAtras.setDate(semanaAtras.getDate() - 7);
-                        if (dataNota < semanaAtras) return false;
+                        const umaSemanaAtras = new Date(hoje);
+                        umaSemanaAtras.setDate(hoje.getDate() - 7);
+                        passaPeriodo = dataNota >= umaSemanaAtras;
                     } else if (periodo === 'month') {
-                        const mesAtras = new Date(hoje);
-                        mesAtras.setMonth(mesAtras.getMonth() - 1);
-                        if (dataNota < mesAtras) return false;
+                        const umMesAtras = new Date(hoje);
+                        umMesAtras.setMonth(hoje.getMonth() - 1);
+                        passaPeriodo = dataNota >= umMesAtras;
                     }
                 }
 
-                if (loja !== 'all' && nota.loja !== loja) return false;
-                if (colaborador !== 'all' && nota.colaborador !== colaborador) return false;
+                // Filtro de loja
+                if (loja !== 'all') {
+                    passaLoja = nota.loja === loja;
+                }
 
-                return true;
+                // Filtro de colaborador
+                if (colaborador !== 'all') {
+                    passaColaborador = nota.colaborador === colaborador;
+                }
+
+                return passaPeriodo && passaLoja && passaColaborador;
             });
 
-            atualizarDashboard();
+            atualizarVisualizacoes();
         }
 
-        function parseDataBrasileira(dataStr) {
-            if (!dataStr) return new Date();
-            const partes = dataStr.split(',')[0].split(/[\/\-]/);
-            if (partes.length === 3) {
-                return new Date(partes[2], partes[1] - 1, partes[0]);
-            }
-            return new Date();
-        }
-
+        // Atualizar todo o dashboard
         function atualizarDashboard() {
+            dadosFiltrados = [...notasFiscais];
+            popularFiltros();
+            atualizarVisualizacoes();
+        }
+
+        // Atualizar visualizações
+        function atualizarVisualizacoes() {
             atualizarEstatisticas();
             atualizarRankingColaboradores();
             atualizarGraficoLojas();
@@ -954,7 +929,8 @@
             atualizarTabelaLojas();
         }
 
-        function preencherFiltros() {
+        // Popular filtros
+        function popularFiltros() {
             const lojas = [...new Set(notasFiscais.map(n => n.loja))].sort();
             const filterLoja = document.getElementById('filterLoja');
             filterLoja.innerHTML = '<option value="all">Todas as Lojas</option>';
@@ -970,6 +946,7 @@
             });
         }
 
+        // Atualizar estatísticas
         function atualizarEstatisticas() {
             const totalNotas = dadosFiltrados.length;
             const colaboradores = new Set(dadosFiltrados.map(n => n.colaborador));
@@ -987,6 +964,7 @@
             document.getElementById('trendMedia').textContent = `${mediaPorColab} NFs/pessoa`;
         }
 
+        // Atualizar ranking de colaboradores
         function atualizarRankingColaboradores() {
             const ranking = {};
             dadosFiltrados.forEach(nota => {
@@ -1036,6 +1014,7 @@
             }).join('');
         }
 
+        // Atualizar gráfico de lojas
         function atualizarGraficoLojas() {
             const ctx = document.getElementById('chartLojas');
             
@@ -1091,6 +1070,7 @@
             });
         }
 
+        // Atualizar gráfico temporal
         function atualizarGraficoTemporal() {
             const ctx = document.getElementById('chartTemporal');
             
@@ -1153,6 +1133,7 @@
             });
         }
 
+        // Atualizar tabela de lojas
         function atualizarTabelaLojas() {
             const lojas = {};
             dadosFiltrados.forEach(nota => {
@@ -1207,8 +1188,12 @@
                 }).join('');
         }
 
+        // Inicializar ao carregar a página
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Dashboard híbrido iniciado! Aceita múltiplos JSON e PDF.');
+            console.log('✅ Dashboard otimizado iniciado!');
+            console.log('💾 Suporte a persistência com localStorage');
+            console.log('📄 Suporte melhorado para importação de PDFs');
+            carregarDadosLocalStorage();
         });
     </script>
 </body>
