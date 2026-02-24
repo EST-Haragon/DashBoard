@@ -2,204 +2,648 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Sistema de Consolidação de Relatórios</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consolidador de Produção</title>
 
-<!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-
-<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <style>
-body{
-    font-family: Arial;
-    background:#eef2f7;
-    padding:20px;
-}
-h1{
-    margin-bottom:5px;
-}
-button{
-    padding:8px 14px;
-    background:#1f4e79;
-    color:white;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    margin-top:10px;
-}
-button:hover{
-    background:#163a5c;
-}
-input{
-    padding:6px;
-    margin-top:5px;
-}
-#resultado{
-    margin-top:20px;
-    background:white;
-    padding:15px;
-    border-radius:8px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
-    max-height:300px;
-    overflow:auto;
-}
-#buscaResultado{
-    margin-top:15px;
-    background:#fff8dc;
-    padding:10px;
-    border-radius:6px;
-}
-canvas{
-    margin-top:30px;
-}
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --warn: #f85149;
+    --muted: #8b949e;
+    --text: #e6edf3;
+    --text-dim: #c9d1d9;
+    --radius: 10px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), #1f6feb);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: clamp(18px, 4vw, 26px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  header p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── Grid layout ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  @media(min-width: 700px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media(min-width: 1000px) {
+    .grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* ── File Drop Zone ── */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(88,166,255,.06);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-zone .dz-icon { font-size: 36px; margin-bottom: 10px; }
+  .drop-zone .dz-label {
+    font-size: 14px; color: var(--text-dim);
+  }
+  .drop-zone .dz-sub {
+    font-size: 12px; color: var(--muted); margin-top: 4px;
+  }
+  #fileNames {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--accent2);
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  button {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: opacity .15s, transform .1s;
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  button:active { transform: scale(.97); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-primary { background: var(--accent); color: #0d1117; }
+  .btn-primary:hover:not(:disabled) { opacity: .85; }
+
+  .btn-success { background: var(--accent2); color: #0d1117; }
+  .btn-success:hover:not(:disabled) { opacity: .85; }
+
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover:not(:disabled) { border-color: var(--accent); }
+
+  /* ── Search ── */
+  .search-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  input[type="text"] {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 12px;
+    color: var(--text);
+    flex: 1;
+    min-width: 120px;
+    transition: border-color .2s;
+    outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+
+  /* ── Search result ── */
+  #buscaResultado {
+    margin-top: 12px;
+    font-size: 13px;
+    font-family: var(--mono);
+    padding: 12px;
+    border-radius: 7px;
+    display: none;
+  }
+  #buscaResultado.ok {
+    background: rgba(63,185,80,.1);
+    border: 1px solid rgba(63,185,80,.3);
+    color: var(--accent2);
+    display: block;
+  }
+  #buscaResultado.err {
+    background: rgba(248,81,73,.1);
+    border: 1px solid rgba(248,81,73,.3);
+    color: var(--warn);
+    display: block;
+  }
+
+  /* ── Stats ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px,1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 26px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── Progress ── */
+  #progressWrap {
+    display: none;
+    margin-top: 10px;
+  }
+  .prog-bar-bg {
+    background: var(--surface2);
+    border-radius: 20px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .prog-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 20px;
+    width: 0%;
+    transition: width .3s;
+  }
+  #progressText {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 5px;
+    font-family: var(--mono);
+  }
+
+  /* ── Table ── */
+  .table-wrap {
+    overflow-x: auto;
+    max-height: 320px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+  thead { position: sticky; top: 0; z-index: 1; }
+  thead th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  td { padding: 9px 14px; color: var(--text-dim); white-space: nowrap; }
+  td:first-child { color: var(--accent); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .empty-state .empty-icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* ── Chart ── */
+  .chart-wrap {
+    position: relative;
+    height: 260px;
+  }
+
+  /* ── Full-width sections ── */
+  .full { grid-column: 1 / -1; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--accent2);
+    color: #0d1117;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .3s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
 </style>
 </head>
 <body>
 
-<h1>📊 Consolidador de Produção</h1>
+<header>
+  <div class="logo-icon">📊</div>
+  <div>
+    <h1>Consolidador de Produção</h1>
+    <p>Leitura e análise de PDFs de relatórios</p>
+  </div>
+</header>
 
-<input type="file" id="pdfInput" multiple accept="application/pdf">
-<br>
-<button onclick="processarPDFs()">Processar PDFs</button>
-<button onclick="gerarPDF()">Gerar PDF Consolidado</button>
+<div class="grid">
 
-<h3>🔎 Buscar NF no consolidado</h3>
-<input type="text" id="nfBusca" placeholder="Digite o número da NF">
-<button onclick="buscarNF()">Buscar</button>
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">📁 Importar PDFs</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="pdfInput" multiple accept="application/pdf">
+      <div class="dz-icon">📄</div>
+      <div class="dz-label">Clique ou arraste seus PDFs aqui</div>
+      <div class="dz-sub">Suporte a múltiplos arquivos</div>
+    </div>
+    <div id="fileNames"></div>
+    <div id="progressWrap">
+      <div class="prog-bar-bg"><div class="prog-bar" id="progBar"></div></div>
+      <div id="progressText">Aguardando...</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="processarPDFs()" id="btnProcessar" disabled>▶ Processar</button>
+      <button class="btn-success" onclick="gerarPDF()" id="btnGerarPDF" disabled>⬇ Exportar PDF</button>
+    </div>
+  </div>
 
-<div id="buscaResultado"></div>
+  <!-- Busca -->
+  <div class="card">
+    <div class="card-title">🔎 Buscar NF</div>
+    <div class="search-row">
+      <input type="text" id="nfBusca" placeholder="Número da NF..." onkeydown="if(event.key==='Enter') buscarNF()">
+      <button class="btn-secondary" onclick="buscarNF()">Buscar</button>
+    </div>
+    <div id="buscaResultado"></div>
+  </div>
 
-<div id="resultado"></div>
+  <!-- Stats -->
+  <div class="card">
+    <div class="card-title">📈 Resumo</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-val" id="statNF">0</div><div class="stat-label">NFs</div></div>
+      <div class="stat"><div class="stat-val" id="statLojas">0</div><div class="stat-label">Lojas</div></div>
+      <div class="stat"><div class="stat-val" id="statColab">0</div><div class="stat-label">Colaboradores</div></div>
+    </div>
+  </div>
 
-<canvas id="grafico"></canvas>
+  <!-- Tabela -->
+  <div class="card full">
+    <div class="card-title">📋 Dados Consolidados</div>
+    <div class="table-wrap">
+      <table id="tabela">
+        <thead>
+          <tr>
+            <th>NF</th>
+            <th>Loja</th>
+            <th>Colaborador</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaBody">
+          <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📂</div>Nenhum dado carregado</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="card full">
+    <div class="card-title">📊 Produção por Colaborador</div>
+    <div class="chart-wrap">
+      <canvas id="grafico"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast">✓ PDF exportado com sucesso!</div>
 
 <script>
-let dados = [];
-let grafico;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-async function processarPDFs(){
-    dados = [];
-    const files = document.getElementById("pdfInput").files;
+  let dados = [];
+  let grafico;
+  let arquivosSelecionados = []; // BUG 1 FIX: variável auxiliar para suportar drag & drop
 
-    for(let file of files){
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  // ── Drag & Drop ──
+  const dropZone = document.getElementById('dropZone');
+  const pdfInput = document.getElementById('pdfInput');
 
-        for(let i=1; i<=pdf.numPages; i++){
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const text = textContent.items.map(item => item.str).join(" ");
-            extrairDados(text);
-        }
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  // BUG 2 FIX: dragleave dispara ao mover sobre filho; checar relatedTarget
+  dropZone.addEventListener('dragleave', e => {
+    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('dragover');
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    arquivosSelecionados = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+    atualizarNomesArquivos();
+  });
+  pdfInput.addEventListener('change', () => {
+    arquivosSelecionados = Array.from(pdfInput.files);
+    atualizarNomesArquivos();
+  });
+
+  function atualizarNomesArquivos() {
+    const div = document.getElementById('fileNames');
+    if (!arquivosSelecionados.length) {
+      div.textContent = '';
+      document.getElementById('btnProcessar').disabled = true;
+      return;
     }
+    div.textContent = arquivosSelecionados.map(f => f.name).join(' · ');
+    document.getElementById('btnProcessar').disabled = false;
+  }
+
+  // ── Processar ──
+  async function processarPDFs() {
+    dados = [];
+    // BUG 3 FIX: usar arquivosSelecionados em vez de pdfInput.files
+    if (!arquivosSelecionados.length) return;
+
+    const progWrap = document.getElementById('progressWrap');
+    const progBar  = document.getElementById('progBar');
+    const progText = document.getElementById('progressText');
+    progWrap.style.display = 'block';
+    progBar.style.width = '0%';
+    document.getElementById('btnProcessar').disabled = true;
+    document.getElementById('btnGerarPDF').disabled = true;
+
+    let totalPages = 0, processedPages = 0;
+
+    try {
+      // BUG 4 FIX: usar Uint8Array para evitar que o ArrayBuffer seja transferido/esvaziado
+      const pdfs = [];
+      for (let file of arquivosSelecionados) {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+        pdfs.push(pdf);
+        totalPages += pdf.numPages;
+      }
+
+      for (let pdf of pdfs) {
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          // BUG 5 FIX: respeitar quebras de linha reais (hasEOL) ao montar o texto
+          const text = textContent.items.map(item => item.str + (item.hasEOL ? '\n' : ' ')).join('');
+          extrairDados(text);
+          processedPages++;
+          const pct = Math.round((processedPages / totalPages) * 100);
+          progBar.style.width = pct + '%';
+          progText.textContent = `Processando: ${processedPages}/${totalPages} páginas...`;
+        }
+      }
+
+      progText.textContent = `✓ Concluído — ${dados.length} registro(s) em ${totalPages} página(s).`;
+    } catch (err) {
+      // BUG 6 FIX: capturar erros de PDF corrompido que antes travavam a UI silenciosamente
+      progText.textContent = `⚠ Erro: ${err.message}`;
+      console.error(err);
+    }
+
+    document.getElementById('btnProcessar').disabled = false;
+    document.getElementById('btnGerarPDF').disabled = dados.length === 0;
 
     mostrarResultado();
+    atualizarStats();
     gerarGrafico();
-}
+  }
 
-function extrairDados(texto){
+  function extrairDados(texto) {
+    const loja     = texto.match(/Loja:\s*(\S+)/)?.[1] || 'N/A';
+    const nfMatch  = texto.match(/NF:\s*(\d+)/g);
+    const colMatch = texto.match(/Colaborador:\s*(\S+)/g);
+    const dtMatch  = texto.match(/Data:\s*([\d\/,: ]+)/g);
 
-    const loja = texto.match(/Loja:\s*(\w+)/)?.[1] || "N/A";
-    const nfMatch = texto.match(/NF:\s*(\d+)/g);
-    const colaboradorMatch = texto.match(/Colaborador:\s*(\w+)/g);
-    const dataMatch = texto.match(/Data:\s*([\d\/:, ]+)/g);
-
-    if(nfMatch){
-        for(let i=0; i<nfMatch.length; i++){
-            dados.push({
-                loja: loja,
-                nf: nfMatch[i].replace("NF: ",""),
-                colaborador: colaboradorMatch ? colaboradorMatch[i].replace("Colaborador: ","") : "N/A",
-                data: dataMatch ? dataMatch[i].replace("Data: ","") : "N/A"
-            });
-        }
+    if (nfMatch) {
+      nfMatch.forEach((nfRaw, i) => {
+        dados.push({
+          loja,
+          nf:          nfRaw.replace(/NF:\s*/, ''),
+          colaborador: colMatch?.[i]?.replace(/Colaborador:\s*/, '') ?? 'N/A',
+          data:        dtMatch?.[i]?.replace(/Data:\s*/, '').trim() ?? 'N/A',
+        });
+      });
     }
-}
+  }
 
-function mostrarResultado(){
-    const div = document.getElementById("resultado");
-    div.innerHTML = "<h3>📋 Dados Consolidados:</h3>";
-
-    dados.forEach(d=>{
-        div.innerHTML += `
-        NF: ${d.nf} |
-        Loja: ${d.loja} |
-        Colaborador: ${d.colaborador} |
-        Data: ${d.data} <br>`;
-    });
-}
-
-function gerarGrafico(){
-
-    let producao = {};
-
-    dados.forEach(d=>{
-        if(!producao[d.colaborador]) producao[d.colaborador] = 0;
-        producao[d.colaborador]++;
-    });
-
-    const ctx = document.getElementById("grafico");
-
-    if(grafico) grafico.destroy();
-
-    grafico = new Chart(ctx,{
-        type:'bar',
-        data:{
-            labels:Object.keys(producao),
-            datasets:[{
-                label:'Produção por Colaborador',
-                data:Object.values(producao),
-                borderWidth:1
-            }]
-        }
-    });
-}
-
-function buscarNF(){
-    const nf = document.getElementById("nfBusca").value.trim();
-    const resultado = document.getElementById("buscaResultado");
-
-    const encontrada = dados.find(d => d.nf === nf);
-
-    if(encontrada){
-        resultado.innerHTML = `
-        ✅ NF Encontrada!<br>
-        Loja: ${encontrada.loja}<br>
-        Colaborador: ${encontrada.colaborador}<br>
-        Data: ${encontrada.data}
-        `;
-    }else{
-        resultado.innerHTML = "❌ NF não encontrada.";
+  function mostrarResultado() {
+    const tbody = document.getElementById('tabelaBody');
+    if (!dados.length) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🔍</div>Nenhum dado encontrado nos PDFs</div></td></tr>`;
+      return;
     }
-}
+    tbody.innerHTML = dados.map(d => `
+      <tr>
+        <td>${d.nf}</td>
+        <td>${d.loja}</td>
+        <td>${d.colaborador}</td>
+        <td>${d.data}</td>
+      </tr>`).join('');
+  }
 
-async function gerarPDF(){
+  function atualizarStats() {
+    document.getElementById('statNF').textContent    = dados.length;
+    document.getElementById('statLojas').textContent = new Set(dados.map(d => d.loja)).size;
+    document.getElementById('statColab').textContent = new Set(dados.map(d => d.colaborador)).size;
+  }
+
+  function gerarGrafico() {
+    // BUG 7 FIX: destruir gráfico anterior sempre; não renderizar se sem dados
+    if (grafico) { grafico.destroy(); grafico = null; }
+    if (!dados.length) return;
+
+    const prod = {};
+    dados.forEach(d => { prod[d.colaborador] = (prod[d.colaborador] || 0) + 1; });
+
+    grafico = new Chart(document.getElementById('grafico'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(prod),
+        datasets: [{
+          label: 'NFs por Colaborador',
+          data: Object.values(prod),
+          backgroundColor: 'rgba(88,166,255,0.7)',
+          borderColor: '#58a6ff',
+          borderWidth: 1,
+          borderRadius: 5,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#c9d1d9', font: { family: 'Sora' } } },
+        },
+        scales: {
+          x: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+          y: { ticks: { color: '#8b949e', precision: 0 }, grid: { color: '#21262d' } },
+        },
+      },
+    });
+  }
+
+  function buscarNF() {
+    const nf  = document.getElementById('nfBusca').value.trim();
+    const div = document.getElementById('buscaResultado');
+
+    if (!nf) { div.className = ''; div.style.display = 'none'; return; }
+
+    // BUG 8 FIX: comparar com trim() em ambos os lados para evitar falsos negativos
+    const found = dados.find(d => d.nf.trim() === nf);
+    if (found) {
+      div.className = 'ok';
+      div.innerHTML = `✅ NF Encontrada!<br>Loja: ${found.loja} | Colaborador: ${found.colaborador} | Data: ${found.data}`;
+    } else {
+      div.className = 'err';
+      div.textContent = `❌ NF "${nf}" não encontrada.`;
+    }
+  }
+
+  async function gerarPDF() {
+    if (!dados.length) return;
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const pageH = doc.internal.pageSize.height;
 
-    let y = 10;
-    doc.text("Relatório Consolidado de Produção",10,y);
-    y+=10;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Relatório Consolidado de Produção', 10, 14);
 
-    dados.forEach(d=>{
-        doc.text(`NF: ${d.nf}`,10,y); y+=6;
-        doc.text(`Loja: ${d.loja}`,10,y); y+=6;
-        doc.text(`Colaborador: ${d.colaborador}`,10,y); y+=6;
-        doc.text(`Data: ${d.data}`,10,y); y+=10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}   Total de NFs: ${dados.length}`, 10, 21);
+    doc.setTextColor(0);
 
-        if(y>270){
-            doc.addPage();
-            y=10;
-        }
+    let y = 30;
+    const cols = [10, 50, 110, 155];
+    const headers = ['NF', 'Loja', 'Colaborador', 'Data'];
+
+    const drawHeader = () => {
+      doc.setFillColor(31, 78, 121);
+      doc.rect(8, y - 5, 194, 8, 'F');
+      doc.setTextColor(255);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      headers.forEach((h, i) => doc.text(h, cols[i], y));
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0);
+      y += 7;
+    };
+
+    drawHeader();
+
+    dados.forEach((d, idx) => {
+      if (y > pageH - 15) { doc.addPage(); y = 15; drawHeader(); }
+      if (idx % 2 === 0) { doc.setFillColor(240, 244, 248); doc.rect(8, y - 4, 194, 7, 'F'); }
+      doc.setFontSize(8);
+      doc.text(String(d.nf), cols[0], y);
+      doc.text(String(d.loja), cols[1], y);
+      doc.text(String(d.colaborador), cols[2], y);
+      doc.text(String(d.data), cols[3], y);
+      y += 7;
     });
 
-    doc.save("Relatorio_Consolidado.pdf");
-}
-</script>
+    doc.save('Relatorio_Consolidado.pdf');
+    showToast('✓ PDF exportado com sucesso!');
+  }
 
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
 </body>
 </html>
