@@ -1,649 +1,1231 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consolidador de Produção</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QGK – Dashboard DANFE</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --bg: #f4f5f7;
+            --surface: #ffffff;
+            --surface2: #f9fafb;
+            --border: #e5e7eb;
+            --border2: #d1d5db;
+            --text: #111827;
+            --text2: #6b7280;
+            --text3: #9ca3af;
+            --accent: #111827;
+            --accent2: #374151;
+            --green: #059669;
+            --green-bg: #ecfdf5;
+            --blue: #2563eb;
+            --blue-bg: #eff6ff;
+            --orange: #d97706;
+            --orange-bg: #fffbeb;
+            --red: #dc2626;
+            --red-bg: #fef2f2;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+        }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
 
-<style>
-  :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #21262d;
-    --border: #30363d;
-    --accent: #58a6ff;
-    --accent2: #3fb950;
-    --warn: #f85149;
-    --muted: #8b949e;
-    --text: #e6edf3;
-    --text-dim: #c9d1d9;
-    --radius: 10px;
-    --mono: 'DM Mono', monospace;
-    --sans: 'Sora', sans-serif;
-  }
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 240px;
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 28px 20px;
+            z-index: 100;
+        }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 36px;
+        }
 
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 24px 16px 60px;
-  }
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
 
-  /* ── Header ── */
-  header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 32px;
-  }
-  .logo-icon {
-    width: 44px; height: 44px;
-    background: linear-gradient(135deg, var(--accent), #1f6feb);
-    border-radius: 10px;
-    display: grid; place-items: center;
-    font-size: 22px;
-    flex-shrink: 0;
-  }
-  header h1 {
-    font-size: clamp(18px, 4vw, 26px);
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-  header p {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
+        .logo-icon svg { width: 18px; height: 18px; fill: white; }
 
-  /* ── Grid layout ── */
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-  @media(min-width: 700px) {
-    .grid { grid-template-columns: 1fr 1fr; }
-  }
-  @media(min-width: 1000px) {
-    .grid { grid-template-columns: 1fr 1fr 1fr; }
-  }
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
 
-  /* ── Card ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-  }
-  .card-title {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text3);
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: -2px;
+            display: block;
+        }
 
-  /* ── File Drop Zone ── */
-  .drop-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 32px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .2s, background .2s;
-    position: relative;
-  }
-  .drop-zone:hover, .drop-zone.dragover {
-    border-color: var(--accent);
-    background: rgba(88,166,255,.06);
-  }
-  .drop-zone input[type="file"] {
-    position: absolute; inset: 0;
-    opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .drop-zone .dz-icon { font-size: 36px; margin-bottom: 10px; }
-  .drop-zone .dz-label {
-    font-size: 14px; color: var(--text-dim);
-  }
-  .drop-zone .dz-sub {
-    font-size: 12px; color: var(--muted); margin-top: 4px;
-  }
-  #fileNames {
-    font-size: 12px;
-    font-family: var(--mono);
-    color: var(--accent2);
-    margin-top: 10px;
-    text-align: center;
-  }
+        .nav { flex: 1; }
 
-  /* ── Buttons ── */
-  .btn-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
-  }
-  button {
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 9px 18px;
-    border: none;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: opacity .15s, transform .1s;
-    display: flex; align-items: center; gap: 6px;
-    white-space: nowrap;
-  }
-  button:active { transform: scale(.97); }
-  button:disabled { opacity: .4; cursor: not-allowed; }
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text3);
+            margin-bottom: 8px;
+            padding: 0 8px;
+        }
 
-  .btn-primary { background: var(--accent); color: #0d1117; }
-  .btn-primary:hover:not(:disabled) { opacity: .85; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text2);
+            margin-bottom: 2px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
 
-  .btn-success { background: var(--accent2); color: #0d1117; }
-  .btn-success:hover:not(:disabled) { opacity: .85; }
+        .nav-item:hover { background: var(--bg); color: var(--text); }
+        .nav-item.active { background: var(--accent); color: white; }
+        .nav-item.active .nav-icon { opacity: 1; }
 
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  .btn-secondary:hover:not(:disabled) { border-color: var(--accent); }
+        .nav-icon { font-size: 16px; opacity: 0.6; }
+        .nav-item.active .nav-icon { opacity: 1; }
 
-  /* ── Search ── */
-  .search-row {
-    display: flex; gap: 8px; flex-wrap: wrap;
-  }
-  input[type="text"] {
-    font-family: var(--mono);
-    font-size: 13px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 9px 12px;
-    color: var(--text);
-    flex: 1;
-    min-width: 120px;
-    transition: border-color .2s;
-    outline: none;
-  }
-  input[type="text"]:focus { border-color: var(--accent); }
+        .sidebar-footer {
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
 
-  /* ── Search result ── */
-  #buscaResultado {
-    margin-top: 12px;
-    font-size: 13px;
-    font-family: var(--mono);
-    padding: 12px;
-    border-radius: 7px;
-    display: none;
-  }
-  #buscaResultado.ok {
-    background: rgba(63,185,80,.1);
-    border: 1px solid rgba(63,185,80,.3);
-    color: var(--accent2);
-    display: block;
-  }
-  #buscaResultado.err {
-    background: rgba(248,81,73,.1);
-    border: 1px solid rgba(248,81,73,.3);
-    color: var(--warn);
-    display: block;
-  }
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text3);
+            padding: 8px 12px;
+        }
 
-  /* ── Stats ── */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(90px,1fr));
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .stat {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-  }
-  .stat-val {
-    font-size: 26px;
-    font-weight: 700;
-    font-family: var(--mono);
-    color: var(--accent);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-  }
+        .sync-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            flex-shrink: 0;
+        }
 
-  /* ── Progress ── */
-  #progressWrap {
-    display: none;
-    margin-top: 10px;
-  }
-  .prog-bar-bg {
-    background: var(--surface2);
-    border-radius: 20px;
-    height: 6px;
-    overflow: hidden;
-  }
-  .prog-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 20px;
-    width: 0%;
-    transition: width .3s;
-  }
-  #progressText {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 5px;
-    font-family: var(--mono);
-  }
+        .sync-dot.syncing { animation: pulse-dot 1s infinite; background: var(--orange); }
+        .sync-dot.error { background: var(--red); }
 
-  /* ── Table ── */
-  .table-wrap {
-    overflow-x: auto;
-    max-height: 320px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    font-family: var(--mono);
-  }
-  thead { position: sticky; top: 0; z-index: 1; }
-  thead th {
-    background: var(--surface2);
-    color: var(--muted);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: .8px;
-    padding: 10px 14px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background .15s;
-  }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--surface2); }
-  td { padding: 9px 14px; color: var(--text-dim); white-space: nowrap; }
-  td:first-child { color: var(--accent); }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
 
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .empty-state .empty-icon { font-size: 32px; margin-bottom: 8px; }
+        /* ── MAIN ── */
+        .main {
+            margin-left: 240px;
+            min-height: 100vh;
+        }
 
-  /* ── Chart ── */
-  .chart-wrap {
-    position: relative;
-    height: 260px;
-  }
+        /* ── TOPBAR ── */
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
 
-  /* ── Full-width sections ── */
-  .full { grid-column: 1 / -1; }
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
 
-  /* ── Toast ── */
-  #toast {
-    position: fixed;
-    bottom: 24px; right: 24px;
-    background: var(--accent2);
-    color: #0d1117;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 10px 18px;
-    border-radius: 8px;
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all .3s;
-    z-index: 999;
-    pointer-events: none;
-  }
-  #toast.show { transform: translateY(0); opacity: 1; }
-</style>
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text2);
+            border: 1px solid var(--border2);
+        }
+        .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--accent2); }
+
+        .btn-danger {
+            background: var(--red-bg);
+            color: var(--red);
+            border: 1px solid #fecaca;
+        }
+        .btn-danger:hover { background: #fee2e2; }
+
+        /* ── CONTENT ── */
+        .content {
+            padding: 32px;
+        }
+
+        /* ── TABS ── */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ── CARDS GRID ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        .stat-card.green .stat-value { color: var(--green); }
+        .stat-card.blue .stat-value { color: var(--blue); }
+        .stat-card.orange .stat-value { color: var(--orange); }
+
+        /* ── CHARTS GRID ── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-card.full { grid-column: 1 / -1; }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .chart-sub {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+
+        /* ── BAR CHART ── */
+        .bar-chart { display: flex; flex-direction: column; gap: 12px; }
+
+        .bar-item { display: flex; align-items: center; gap: 12px; }
+
+        .bar-label {
+            font-size: 13px;
+            color: var(--text2);
+            min-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--accent);
+            transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .bar-fill.blue { background: var(--blue); }
+        .bar-fill.green { background: var(--green); }
+
+        .bar-value {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text2);
+            min-width: 28px;
+            text-align: right;
+        }
+
+        /* ── HOUR CHART ── */
+        .hour-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 120px;
+        }
+
+        .hour-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .hour-bar {
+            width: 100%;
+            background: var(--accent);
+            border-radius: 4px 4px 0 0;
+            min-height: 2px;
+            transition: height 0.5s ease;
+            opacity: 0.85;
+        }
+
+        .hour-bar:hover { opacity: 1; }
+
+        .hour-label {
+            font-size: 9px;
+            color: var(--text3);
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* ── TABLE ── */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-title { font-size: 14px; font-weight: 600; }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            width: 260px;
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            width: 100%;
+        }
+
+        .search-box input::placeholder { color: var(--text3); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text3);
+            text-align: left;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface2); }
+
+        tbody td {
+            padding: 13px 16px;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-green { background: var(--green-bg); color: var(--green); }
+        .badge-gray { background: var(--bg); color: var(--text2); }
+        .badge-blue { background: var(--blue-bg); color: var(--blue); }
+
+        .mono {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+        }
+
+        /* ── SEARCH TAB ── */
+        .search-hero {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .search-hero-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .search-hero-sub { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+
+        .search-big {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-big input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1.5px solid var(--border2);
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.15s;
+            background: var(--bg);
+        }
+
+        .search-big input:focus { border-color: var(--accent); background: white; }
+
+        .search-result-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-result-left { display: flex; flex-direction: column; gap: 4px; }
+
+        .search-nf {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .search-info { font-size: 13px; color: var(--text2); }
+
+        /* ── PDF TAB ── */
+        .pdf-zone {
+            background: var(--surface);
+            border: 2px dashed var(--border2);
+            border-radius: var(--radius);
+            padding: 60px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 24px;
+        }
+
+        .pdf-zone:hover { border-color: var(--accent); background: var(--surface2); }
+        .pdf-zone.drag-over { border-color: var(--blue); background: var(--blue-bg); }
+
+        .pdf-icon { font-size: 48px; margin-bottom: 16px; }
+        .pdf-zone-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .pdf-zone-sub { font-size: 13px; color: var(--text2); }
+
+        #pdfFileInput { display: none; }
+
+        .pdf-result {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .pdf-result-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
+
+        .pdf-text-content {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: var(--text2);
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.7;
+        }
+
+        /* ── LOADING ── */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text3);
+            font-size: 14px;
+            gap: 12px;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--text3);
+        }
+
+        .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-state-text { font-size: 14px; }
+
+        /* ── PAGINATION ── */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 14px 24px;
+            border-top: 1px solid var(--border);
+            gap: 8px;
+        }
+
+        .pagination-info { font-size: 13px; color: var(--text2); flex: 1; }
+
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text2);
+            transition: all 0.15s;
+        }
+
+        .page-btn:hover { background: var(--bg); }
+        .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--text);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: var(--shadow-md);
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: var(--green); }
+        .toast.error { background: var(--red); }
+
+        /* ── FILTER ROW ── */
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .filter-select:focus { border-color: var(--accent); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1100px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
-<header>
-  <div class="logo-icon">📊</div>
-  <div>
-    <h1>Consolidador de Produção</h1>
-    <p>Leitura e análise de PDFs de relatórios</p>
-  </div>
-</header>
-
-<div class="grid">
-
-  <!-- Upload -->
-  <div class="card">
-    <div class="card-title">📁 Importar PDFs</div>
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="pdfInput" multiple accept="application/pdf">
-      <div class="dz-icon">📄</div>
-      <div class="dz-label">Clique ou arraste seus PDFs aqui</div>
-      <div class="dz-sub">Suporte a múltiplos arquivos</div>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="logo">
+        <div class="logo-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <div>
+            <div class="logo-text">QGK</div>
+            <span class="logo-sub">Dashboard DANFE</span>
+        </div>
     </div>
-    <div id="fileNames"></div>
-    <div id="progressWrap">
-      <div class="prog-bar-bg"><div class="prog-bar" id="progBar"></div></div>
-      <div id="progressText">Aguardando...</div>
+
+    <nav class="nav">
+        <div class="nav-label">Menu</div>
+        <button class="nav-item active" onclick="showTab('overview')">
+            <span class="nav-icon">📊</span> Visão Geral
+        </button>
+        <button class="nav-item" onclick="showTab('notas')">
+            <span class="nav-icon">📋</span> Notas Fiscais
+        </button>
+        <button class="nav-item" onclick="showTab('busca')">
+            <span class="nav-icon">🔍</span> Buscar NF
+        </button>
+        <button class="nav-item" onclick="showTab('pdf')">
+            <span class="nav-icon">📄</span> Ler PDF
+        </button>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sync-status">
+            <div class="sync-dot" id="syncDot"></div>
+            <span id="syncText">Conectado</span>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:8px;justify-content:center;" onclick="sincronizar()">
+            🔄 Sincronizar
+        </button>
     </div>
-    <div class="btn-row">
-      <button class="btn-primary" onclick="processarPDFs()" id="btnProcessar" disabled>▶ Processar</button>
-      <button class="btn-success" onclick="gerarPDF()" id="btnGerarPDF" disabled>⬇ Exportar PDF</button>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="page-title" id="pageTitle">Visão Geral</div>
+        <div class="topbar-actions">
+            <span style="font-size:12px;color:var(--text3);" id="lastUpdate">–</span>
+            <button class="btn btn-ghost" onclick="gerarPDFRelatorio()">📄 Exportar PDF</button>
+            <button class="btn btn-primary" onclick="sincronizar()">🔄 Atualizar</button>
+        </div>
     </div>
-  </div>
 
-  <!-- Busca -->
-  <div class="card">
-    <div class="card-title">🔎 Buscar NF</div>
-    <div class="search-row">
-      <input type="text" id="nfBusca" placeholder="Número da NF..." onkeydown="if(event.key==='Enter') buscarNF()">
-      <button class="btn-secondary" onclick="buscarNF()">Buscar</button>
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- ── TAB: OVERVIEW ── -->
+        <div id="tab-overview" class="tab-content active">
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading"><div class="spinner"></div> Carregando...</div>
+            </div>
+            <div class="charts-grid" id="chartsGrid" style="display:none;">
+                <!-- Gráfico por hora -->
+                <div class="chart-card full">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Scans por Hora do Dia</div>
+                            <div class="chart-sub">Distribuição de leituras ao longo do dia</div>
+                        </div>
+                    </div>
+                    <div class="hour-chart" id="hourChart"></div>
+                </div>
+                <!-- Por loja -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">NFs por Loja</div>
+                            <div class="chart-sub">Total acumulado</div>
+                        </div>
+                    </div>
+                    <div class="bar-chart" id="lojaChart"></div>
+                </div>
+                <!-- Por colaborador -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">NFs por Colaborador</div>
+                            <div class="chart-sub">Total acumulado</div>
+                        </div>
+                    </div>
+                    <div class="bar-chart" id="colaboradorChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB: NOTAS ── -->
+        <div id="tab-notas" class="tab-content">
+            <div class="filter-row">
+                <select class="filter-select" id="filterLoja" onchange="renderTabela()">
+                    <option value="">Todas as lojas</option>
+                </select>
+                <select class="filter-select" id="filterColaborador" onchange="renderTabela()">
+                    <option value="">Todos os colaboradores</option>
+                </select>
+                <select class="filter-select" id="filterFoto" onchange="renderTabela()">
+                    <option value="">Com e sem foto</option>
+                    <option value="sim">Com foto</option>
+                    <option value="nao">Sem foto</option>
+                </select>
+            </div>
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-title">Notas Fiscais</div>
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Buscar NF, colaborador, loja..." id="tableSearch" oninput="renderTabela()">
+                    </div>
+                </div>
+                <div id="tabelaContainer">
+                    <div class="loading"><div class="spinner"></div> Carregando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB: BUSCA ── -->
+        <div id="tab-busca" class="tab-content">
+            <div class="search-hero">
+                <div class="search-hero-title">Buscar Nota Fiscal</div>
+                <div class="search-hero-sub">Digite o número da NF, colaborador ou loja para encontrar</div>
+                <div class="search-big">
+                    <input type="text" id="buscaInput" placeholder="Ex: 123456, João, Shopee..." oninput="buscarNF()">
+                    <button class="btn btn-primary" onclick="buscarNF()">Buscar</button>
+                </div>
+            </div>
+            <div id="buscaResultados"></div>
+        </div>
+
+        <!-- ── TAB: PDF ── -->
+        <div id="tab-pdf" class="tab-content">
+            <div class="pdf-zone" id="pdfZone" onclick="document.getElementById('pdfFileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropPDF(event)">
+                <div class="pdf-icon">📄</div>
+                <div class="pdf-zone-title">Arraste um PDF ou clique para selecionar</div>
+                <div class="pdf-zone-sub">O texto extraído do PDF será exibido abaixo</div>
+                <input type="file" id="pdfFileInput" accept=".pdf" onchange="lerPDF(event)">
+            </div>
+            <div id="pdfResult" style="display:none;">
+                <div class="pdf-result">
+                    <div class="pdf-result-title" id="pdfFileName">Conteúdo extraído</div>
+                    <div class="pdf-text-content" id="pdfContent"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
-    <div id="buscaResultado"></div>
-  </div>
+</main>
 
-  <!-- Stats -->
-  <div class="card">
-    <div class="card-title">📈 Resumo</div>
-    <div class="stats-grid">
-      <div class="stat"><div class="stat-val" id="statNF">0</div><div class="stat-label">NFs</div></div>
-      <div class="stat"><div class="stat-val" id="statLojas">0</div><div class="stat-label">Lojas</div></div>
-      <div class="stat"><div class="stat-val" id="statColab">0</div><div class="stat-label">Colaboradores</div></div>
-    </div>
-  </div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-  <!-- Tabela -->
-  <div class="card full">
-    <div class="card-title">📋 Dados Consolidados</div>
-    <div class="table-wrap">
-      <table id="tabela">
-        <thead>
-          <tr>
-            <th>NF</th>
-            <th>Loja</th>
-            <th>Colaborador</th>
-            <th>Data</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaBody">
-          <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📂</div>Nenhum dado carregado</div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Gráfico -->
-  <div class="card full">
-    <div class="card-title">📊 Produção por Colaborador</div>
-    <div class="chart-wrap">
-      <canvas id="grafico"></canvas>
-    </div>
-  </div>
-
-</div>
-
-<div id="toast">✓ PDF exportado com sucesso!</div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+const { jsPDF } = window.jspdf;
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz40__TuQkxlnywycf_uVjSl7Iq7MS05AHv69X05jLPTsiocJwyz_wPe234G0h_1xcU/exec';
 
-  let dados = [];
-  let grafico;
-  let arquivosSelecionados = []; // BUG 1 FIX: variável auxiliar para suportar drag & drop
+let todasNotas = [];
+let paginaAtual = 1;
+const POR_PAGINA = 20;
 
-  // ── Drag & Drop ──
-  const dropZone = document.getElementById('dropZone');
-  const pdfInput = document.getElementById('pdfInput');
+// ── TABS ──
+function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    event.currentTarget.classList.add('active');
+    const titles = { overview: 'Visão Geral', notas: 'Notas Fiscais', busca: 'Buscar NF', pdf: 'Ler PDF' };
+    document.getElementById('pageTitle').textContent = titles[tab];
+    if (tab === 'notas') renderTabela();
+}
 
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-  // BUG 2 FIX: dragleave dispara ao mover sobre filho; checar relatedTarget
-  dropZone.addEventListener('dragleave', e => {
-    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('dragover');
-  });
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    arquivosSelecionados = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
-    atualizarNomesArquivos();
-  });
-  pdfInput.addEventListener('change', () => {
-    arquivosSelecionados = Array.from(pdfInput.files);
-    atualizarNomesArquivos();
-  });
+// ── JSONP ──
+function jsonpRequest(params) {
+    return new Promise((resolve, reject) => {
+        const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        const timer = setTimeout(() => {
+            delete window[cbName];
+            document.getElementById(cbName)?.remove();
+            reject(new Error('Timeout'));
+        }, 15000);
+        window[cbName] = (data) => {
+            clearTimeout(timer);
+            delete window[cbName];
+            document.getElementById(cbName)?.remove();
+            resolve(data);
+        };
+        const qs = Object.entries({ ...params, callback: cbName })
+            .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
+        const s = document.createElement('script');
+        s.id = cbName;
+        s.src = APPS_SCRIPT_URL + '?' + qs;
+        s.onerror = () => { clearTimeout(timer); delete window[cbName]; s.remove(); reject(new Error('Erro')); };
+        document.head.appendChild(s);
+    });
+}
 
-  function atualizarNomesArquivos() {
-    const div = document.getElementById('fileNames');
-    if (!arquivosSelecionados.length) {
-      div.textContent = '';
-      document.getElementById('btnProcessar').disabled = true;
-      return;
+// ── SYNC ──
+async function sincronizar() {
+    setSyncStatus('syncing', 'Sincronizando...');
+    try {
+        const notas = await jsonpRequest({ action: 'listar' });
+        if (Array.isArray(notas)) {
+            todasNotas = notas;
+            localStorage.setItem('dashNotas', JSON.stringify(notas));
+            renderOverview();
+            renderTabela();
+            setSyncStatus('ok', 'Conectado');
+            document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
+            showToast('✓ ' + notas.length + ' notas carregadas', 'success');
+        }
+    } catch(e) {
+        const cached = localStorage.getItem('dashNotas');
+        if (cached) { todasNotas = JSON.parse(cached); renderOverview(); renderTabela(); }
+        setSyncStatus('error', 'Sem conexão');
+        showToast('Usando dados em cache', 'error');
     }
-    div.textContent = arquivosSelecionados.map(f => f.name).join(' · ');
-    document.getElementById('btnProcessar').disabled = false;
-  }
+}
 
-  // ── Processar ──
-  async function processarPDFs() {
-    dados = [];
-    // BUG 3 FIX: usar arquivosSelecionados em vez de pdfInput.files
-    if (!arquivosSelecionados.length) return;
+function setSyncStatus(state, text) {
+    const dot = document.getElementById('syncDot');
+    dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+    document.getElementById('syncText').textContent = text;
+}
 
-    const progWrap = document.getElementById('progressWrap');
-    const progBar  = document.getElementById('progBar');
-    const progText = document.getElementById('progressText');
-    progWrap.style.display = 'block';
-    progBar.style.width = '0%';
-    document.getElementById('btnProcessar').disabled = true;
-    document.getElementById('btnGerarPDF').disabled = true;
+// ── OVERVIEW ──
+function renderOverview() {
+    if (!todasNotas.length) return;
 
-    let totalPages = 0, processedPages = 0;
+    const total = todasNotas.length;
+    const comFoto = todasNotas.filter(n => n.temFoto).length;
+    const lojas = [...new Set(todasNotas.map(n => n.loja))].length;
+    const colaboradores = [...new Set(todasNotas.map(n => n.colaborador))].length;
+
+    document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-label">Total de NFs</div>
+            <div class="stat-value">${total}</div>
+            <div class="stat-sub">notas escaneadas</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Com Foto</div>
+            <div class="stat-value">${comFoto}</div>
+            <div class="stat-sub">${Math.round(comFoto/total*100)}% do total</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-label">Lojas</div>
+            <div class="stat-value">${lojas}</div>
+            <div class="stat-sub">lojas distintas</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-label">Colaboradores</div>
+            <div class="stat-value">${colaboradores}</div>
+            <div class="stat-sub">ativos</div>
+        </div>
+    `;
+
+    document.getElementById('chartsGrid').style.display = 'grid';
+
+    // Gráfico por hora
+    const horas = Array(24).fill(0);
+    todasNotas.forEach(n => {
+        if (n.dataHora) {
+            const match = String(n.dataHora).match(/T(\d{2}):/);
+            if (match) horas[parseInt(match[1])]++;
+            else {
+                const m2 = String(n.dataHora).match(/(\d{2}):(\d{2})/);
+                if (m2) horas[parseInt(m2[1])]++;
+            }
+        }
+    });
+    const maxH = Math.max(...horas, 1);
+    document.getElementById('hourChart').innerHTML = horas.map((v, h) => `
+        <div class="hour-col" title="${h}h: ${v} NFs">
+            <div class="hour-bar" style="height:${Math.max(2, (v/maxH)*100)}%"></div>
+            <div class="hour-label">${h < 10 ? '0'+h : h}</div>
+        </div>
+    `).join('');
+
+    // Por loja
+    const porLoja = {};
+    todasNotas.forEach(n => { porLoja[n.loja] = (porLoja[n.loja]||0) + 1; });
+    const sortedLojas = Object.entries(porLoja).sort((a,b) => b[1]-a[1]).slice(0, 8);
+    const maxL = sortedLojas[0]?.[1] || 1;
+    document.getElementById('lojaChart').innerHTML = sortedLojas.map(([loja, qtd]) => `
+        <div class="bar-item">
+            <div class="bar-label" title="${loja}">${loja}</div>
+            <div class="bar-track"><div class="bar-fill blue" style="width:${(qtd/maxL)*100}%"></div></div>
+            <div class="bar-value">${qtd}</div>
+        </div>
+    `).join('');
+
+    // Por colaborador
+    const porColab = {};
+    todasNotas.forEach(n => { porColab[n.colaborador] = (porColab[n.colaborador]||0) + 1; });
+    const sortedColab = Object.entries(porColab).sort((a,b) => b[1]-a[1]).slice(0, 8);
+    const maxC = sortedColab[0]?.[1] || 1;
+    document.getElementById('colaboradorChart').innerHTML = sortedColab.map(([colab, qtd]) => `
+        <div class="bar-item">
+            <div class="bar-label" title="${colab}">${colab}</div>
+            <div class="bar-track"><div class="bar-fill green" style="width:${(qtd/maxC)*100}%"></div></div>
+            <div class="bar-value">${qtd}</div>
+        </div>
+    `).join('');
+
+    // Popula filtros
+    const lojaSelect = document.getElementById('filterLoja');
+    const colabSelect = document.getElementById('filterColaborador');
+    const lojasAll = [...new Set(todasNotas.map(n => n.loja))].sort();
+    const colabsAll = [...new Set(todasNotas.map(n => n.colaborador))].sort();
+    lojaSelect.innerHTML = '<option value="">Todas as lojas</option>' + lojasAll.map(l => `<option>${l}</option>`).join('');
+    colabSelect.innerHTML = '<option value="">Todos os colaboradores</option>' + colabsAll.map(c => `<option>${c}</option>`).join('');
+}
+
+// ── TABELA ──
+function renderTabela() {
+    const search = (document.getElementById('tableSearch')?.value || '').toLowerCase();
+    const filterLoja = document.getElementById('filterLoja')?.value || '';
+    const filterColab = document.getElementById('filterColaborador')?.value || '';
+    const filterFoto = document.getElementById('filterFoto')?.value || '';
+
+    let filtradas = todasNotas.filter(n => {
+        const txt = (n.numeroNF + n.colaborador + n.loja + n.codigoCompleto).toLowerCase();
+        if (search && !txt.includes(search)) return false;
+        if (filterLoja && n.loja !== filterLoja) return false;
+        if (filterColab && n.colaborador !== filterColab) return false;
+        if (filterFoto === 'sim' && !n.temFoto) return false;
+        if (filterFoto === 'nao' && n.temFoto) return false;
+        return true;
+    });
+
+    const total = filtradas.length;
+    const totalPages = Math.ceil(total / POR_PAGINA);
+    if (paginaAtual > totalPages) paginaAtual = 1;
+    const inicio = (paginaAtual - 1) * POR_PAGINA;
+    const pagina = filtradas.slice(inicio, inicio + POR_PAGINA);
+
+    if (!pagina.length) {
+        document.getElementById('tabelaContainer').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-text">Nenhuma nota encontrada</div>
+            </div>`;
+        return;
+    }
+
+    const rows = pagina.map(n => `
+        <tr>
+            <td><span class="mono">${n.numeroNF}</span></td>
+            <td>${n.colaborador}</td>
+            <td>${n.loja}</td>
+            <td>${n.temFoto ? '<span class="badge badge-green">📷 Com foto</span>' : '<span class="badge badge-gray">Sem foto</span>'}</td>
+            <td><span class="mono" style="font-size:11px;">${formatarData(n.dataHora)}</span></td>
+        </tr>
+    `).join('');
+
+    const paginacao = totalPages > 1 ? `
+        <div class="pagination">
+            <div class="pagination-info">Mostrando ${inicio+1}–${Math.min(inicio+POR_PAGINA, total)} de ${total} notas</div>
+            <button class="page-btn" onclick="irPagina(${paginaAtual-1})" ${paginaAtual===1?'disabled':''}>‹</button>
+            ${Array.from({length: Math.min(totalPages, 5)}, (_,i) => {
+                const p = i + Math.max(1, paginaAtual - 2);
+                if (p > totalPages) return '';
+                return `<button class="page-btn ${p===paginaAtual?'active':''}" onclick="irPagina(${p})">${p}</button>`;
+            }).join('')}
+            <button class="page-btn" onclick="irPagina(${paginaAtual+1})" ${paginaAtual===totalPages?'disabled':''}>›</button>
+        </div>
+    ` : '';
+
+    document.getElementById('tabelaContainer').innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Número NF</th>
+                    <th>Colaborador</th>
+                    <th>Loja</th>
+                    <th>Foto</th>
+                    <th>Data/Hora</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+        ${paginacao}
+    `;
+}
+
+function irPagina(p) { paginaAtual = p; renderTabela(); }
+
+// ── BUSCA ──
+function buscarNF() {
+    const termo = document.getElementById('buscaInput').value.trim().toLowerCase();
+    const resultados = document.getElementById('buscaResultados');
+
+    if (!termo) { resultados.innerHTML = ''; return; }
+
+    const encontradas = todasNotas.filter(n =>
+        n.numeroNF?.toString().toLowerCase().includes(termo) ||
+        n.colaborador?.toLowerCase().includes(termo) ||
+        n.loja?.toLowerCase().includes(termo) ||
+        n.codigoCompleto?.toLowerCase().includes(termo)
+    );
+
+    if (!encontradas.length) {
+        resultados.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-text">Nenhuma NF encontrada para "<strong>${termo}</strong>"</div>
+            </div>`;
+        return;
+    }
+
+    resultados.innerHTML = `<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">${encontradas.length} resultado(s) encontrado(s)</div>` +
+        encontradas.slice(0, 50).map(n => `
+            <div class="search-result-card">
+                <div class="search-result-left">
+                    <div class="search-nf">NF ${n.numeroNF}</div>
+                    <div class="search-info">👤 ${n.colaborador} &nbsp;·&nbsp; 🏪 ${n.loja} &nbsp;·&nbsp; 🕐 ${formatarData(n.dataHora)}</div>
+                    <div class="search-info mono" style="font-size:11px;margin-top:2px;">${n.codigoCompleto}</div>
+                </div>
+                <div>${n.temFoto ? '<span class="badge badge-green">📷 Com foto</span>' : '<span class="badge badge-gray">Sem foto</span>'}</div>
+            </div>
+        `).join('');
+}
+
+// ── PDF RELATORIO ──
+function gerarPDFRelatorio() {
+    if (!todasNotas.length) { showToast('Nenhuma nota para exportar', 'error'); return; }
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFontSize(22); doc.setTextColor(17,24,39);
+    doc.text('QGK – Relatório DANFE', pw/2, 20, {align:'center'});
+    doc.setFontSize(10); doc.setTextColor(107,114,128);
+    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, pw/2, 28, {align:'center'});
+    doc.text(`Total de notas: ${todasNotas.length}`, pw/2, 34, {align:'center'});
+
+    // Tabela
+    doc.autoTable({
+        startY: 44,
+        head: [['NF', 'Colaborador', 'Loja', 'Foto', 'Data/Hora']],
+        body: todasNotas.map(n => [n.numeroNF, n.colaborador, n.loja, n.temFoto ? 'Sim' : 'Não', formatarData(n.dataHora)]),
+        styles: { fontSize: 9, cellPadding: 4 },
+        headStyles: { fillColor: [17,24,39], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [249,250,251] },
+    });
+
+    doc.save(`relatorio_danfe_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`);
+    showToast('✓ PDF exportado com sucesso!', 'success');
+}
+
+// ── LER PDF ──
+async function lerPDF(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    processarPDF(file);
+}
+
+function dragOver(e) { e.preventDefault(); document.getElementById('pdfZone').classList.add('drag-over'); }
+function dragLeave() { document.getElementById('pdfZone').classList.remove('drag-over'); }
+function dropPDF(e) {
+    e.preventDefault();
+    dragLeave();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') processarPDF(file);
+}
+
+async function processarPDF(file) {
+    document.getElementById('pdfResult').style.display = 'none';
+    document.getElementById('pdfFileName').textContent = '⏳ Processando ' + file.name + '...';
 
     try {
-      // BUG 4 FIX: usar Uint8Array para evitar que o ArrayBuffer seja transferido/esvaziado
-      const pdfs = [];
-      for (let file of arquivosSelecionados) {
-        const buf = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
-        pdfs.push(pdf);
-        totalPages += pdf.numPages;
-      }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        let textoCompleto = '';
 
-      for (let pdf of pdfs) {
         for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          // BUG 5 FIX: respeitar quebras de linha reais (hasEOL) ao montar o texto
-          const text = textContent.items.map(item => item.str + (item.hasEOL ? '\n' : ' ')).join('');
-          extrairDados(text);
-          processedPages++;
-          const pct = Math.round((processedPages / totalPages) * 100);
-          progBar.style.width = pct + '%';
-          progText.textContent = `Processando: ${processedPages}/${totalPages} páginas...`;
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            textoCompleto += `\n─── PÁGINA ${i} ───\n`;
+            textoCompleto += content.items.map(item => item.str).join(' ') + '\n';
         }
-      }
 
-      progText.textContent = `✓ Concluído — ${dados.length} registro(s) em ${totalPages} página(s).`;
-    } catch (err) {
-      // BUG 6 FIX: capturar erros de PDF corrompido que antes travavam a UI silenciosamente
-      progText.textContent = `⚠ Erro: ${err.message}`;
-      console.error(err);
+        document.getElementById('pdfFileName').textContent = `📄 ${file.name} (${pdf.numPages} página${pdf.numPages>1?'s':''})`;
+        document.getElementById('pdfContent').textContent = textoCompleto.trim();
+        document.getElementById('pdfResult').style.display = 'block';
+        showToast('✓ PDF lido com sucesso!', 'success');
+    } catch(e) {
+        showToast('Erro ao ler o PDF', 'error');
+        console.error(e);
     }
+}
 
-    document.getElementById('btnProcessar').disabled = false;
-    document.getElementById('btnGerarPDF').disabled = dados.length === 0;
+// ── UTILS ──
+function formatarData(d) {
+    if (!d) return '–';
+    try {
+        if (String(d).includes('T')) {
+            const dt = new Date(d);
+            return dt.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        }
+        return String(d);
+    } catch { return String(d); }
+}
 
-    mostrarResultado();
-    atualizarStats();
-    gerarGrafico();
-  }
-
-  function extrairDados(texto) {
-    const loja     = texto.match(/Loja:\s*(\S+)/)?.[1] || 'N/A';
-    const nfMatch  = texto.match(/NF:\s*(\d+)/g);
-    const colMatch = texto.match(/Colaborador:\s*(\S+)/g);
-    const dtMatch  = texto.match(/Data:\s*([\d\/,: ]+)/g);
-
-    if (nfMatch) {
-      nfMatch.forEach((nfRaw, i) => {
-        dados.push({
-          loja,
-          nf:          nfRaw.replace(/NF:\s*/, ''),
-          colaborador: colMatch?.[i]?.replace(/Colaborador:\s*/, '') ?? 'N/A',
-          data:        dtMatch?.[i]?.replace(/Data:\s*/, '').trim() ?? 'N/A',
-        });
-      });
-    }
-  }
-
-  function mostrarResultado() {
-    const tbody = document.getElementById('tabelaBody');
-    if (!dados.length) {
-      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🔍</div>Nenhum dado encontrado nos PDFs</div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = dados.map(d => `
-      <tr>
-        <td>${d.nf}</td>
-        <td>${d.loja}</td>
-        <td>${d.colaborador}</td>
-        <td>${d.data}</td>
-      </tr>`).join('');
-  }
-
-  function atualizarStats() {
-    document.getElementById('statNF').textContent    = dados.length;
-    document.getElementById('statLojas').textContent = new Set(dados.map(d => d.loja)).size;
-    document.getElementById('statColab').textContent = new Set(dados.map(d => d.colaborador)).size;
-  }
-
-  function gerarGrafico() {
-    // BUG 7 FIX: destruir gráfico anterior sempre; não renderizar se sem dados
-    if (grafico) { grafico.destroy(); grafico = null; }
-    if (!dados.length) return;
-
-    const prod = {};
-    dados.forEach(d => { prod[d.colaborador] = (prod[d.colaborador] || 0) + 1; });
-
-    grafico = new Chart(document.getElementById('grafico'), {
-      type: 'bar',
-      data: {
-        labels: Object.keys(prod),
-        datasets: [{
-          label: 'NFs por Colaborador',
-          data: Object.values(prod),
-          backgroundColor: 'rgba(88,166,255,0.7)',
-          borderColor: '#58a6ff',
-          borderWidth: 1,
-          borderRadius: 5,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: '#c9d1d9', font: { family: 'Sora' } } },
-        },
-        scales: {
-          x: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
-          y: { ticks: { color: '#8b949e', precision: 0 }, grid: { color: '#21262d' } },
-        },
-      },
-    });
-  }
-
-  function buscarNF() {
-    const nf  = document.getElementById('nfBusca').value.trim();
-    const div = document.getElementById('buscaResultado');
-
-    if (!nf) { div.className = ''; div.style.display = 'none'; return; }
-
-    // BUG 8 FIX: comparar com trim() em ambos os lados para evitar falsos negativos
-    const found = dados.find(d => d.nf.trim() === nf);
-    if (found) {
-      div.className = 'ok';
-      div.innerHTML = `✅ NF Encontrada!<br>Loja: ${found.loja} | Colaborador: ${found.colaborador} | Data: ${found.data}`;
-    } else {
-      div.className = 'err';
-      div.textContent = `❌ NF "${nf}" não encontrada.`;
-    }
-  }
-
-  async function gerarPDF() {
-    if (!dados.length) return;
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const pageH = doc.internal.pageSize.height;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('Relatório Consolidado de Produção', 10, 14);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}   Total de NFs: ${dados.length}`, 10, 21);
-    doc.setTextColor(0);
-
-    let y = 30;
-    const cols = [10, 50, 110, 155];
-    const headers = ['NF', 'Loja', 'Colaborador', 'Data'];
-
-    const drawHeader = () => {
-      doc.setFillColor(31, 78, 121);
-      doc.rect(8, y - 5, 194, 8, 'F');
-      doc.setTextColor(255);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      headers.forEach((h, i) => doc.text(h, cols[i], y));
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0);
-      y += 7;
-    };
-
-    drawHeader();
-
-    dados.forEach((d, idx) => {
-      if (y > pageH - 15) { doc.addPage(); y = 15; drawHeader(); }
-      if (idx % 2 === 0) { doc.setFillColor(240, 244, 248); doc.rect(8, y - 4, 194, 7, 'F'); }
-      doc.setFontSize(8);
-      doc.text(String(d.nf), cols[0], y);
-      doc.text(String(d.loja), cols[1], y);
-      doc.text(String(d.colaborador), cols[2], y);
-      doc.text(String(d.data), cols[3], y);
-      y += 7;
-    });
-
-    doc.save('Relatorio_Consolidado.pdf');
-    showToast('✓ PDF exportado com sucesso!');
-  }
-
-  function showToast(msg) {
+function showToast(msg, type = '') {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.classList.add('show');
+    t.className = 'toast show ' + type;
     setTimeout(() => t.classList.remove('show'), 3000);
-  }
+}
+
+// ── INIT ──
+window.addEventListener('load', () => {
+    const cached = localStorage.getItem('dashNotas');
+    if (cached) { todasNotas = JSON.parse(cached); renderOverview(); }
+    sincronizar();
+    setInterval(sincronizar, 60000); // auto-refresh a cada 1 min
+});
 </script>
 </body>
 </html>
