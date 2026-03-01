@@ -696,6 +696,84 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .charts-grid { grid-template-columns: 1fr; }
         }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                left: 0;
+                right: 0;
+                flex-direction: row;
+                padding: 8px 12px;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                z-index: 200;
+                justify-content: space-around;
+                align-items: center;
+            }
+            .logo { display: none; }
+            .nav-label { display: none; }
+            .sidebar-footer { display: none; }
+            .nav {
+                display: flex;
+                flex-direction: row;
+                gap: 4px;
+                width: 100%;
+                justify-content: space-around;
+            }
+            .nav-item {
+                flex-direction: column;
+                gap: 3px;
+                padding: 6px 10px;
+                font-size: 10px;
+                border-radius: 10px;
+                text-align: center;
+                flex: 1;
+            }
+            .nav-icon { font-size: 20px; opacity: 1; }
+            .main { margin-left: 0; padding-bottom: 72px; }
+            .topbar { padding: 0 16px; height: 56px; }
+            .page-title { font-size: 16px; }
+            .topbar-actions { gap: 6px; }
+            .btn { padding: 6px 10px; font-size: 12px; }
+            #lastUpdate { display: none; }
+            .content { padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+            .stat-card { padding: 14px; }
+            .stat-value { font-size: 24px; }
+            .stat-label { font-size: 10px; }
+            .charts-grid { gap: 12px; margin-bottom: 16px; }
+            .chart-card { padding: 16px; }
+            .bar-label { min-width: 90px; font-size: 12px; }
+            .hour-chart { height: 80px; gap: 3px; }
+            .hour-label { font-size: 7px; }
+            .table-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+            .search-box { width: 100%; }
+            table { font-size: 12px; }
+            thead th { padding: 10px; font-size: 10px; }
+            tbody td { padding: 10px; }
+            .filter-row { gap: 8px; }
+            .filter-select { font-size: 12px; padding: 7px 10px; flex: 1; }
+            .search-hero { padding: 20px; }
+            .search-hero-title { font-size: 18px; }
+            .search-big { flex-direction: column; }
+            .search-big input { font-size: 14px; padding: 12px 14px; }
+            .search-result-card { flex-direction: column; gap: 12px; padding: 16px; }
+            .search-nf { font-size: 18px; }
+            .pdf-zone { padding: 36px 20px; }
+            .pdf-icon { font-size: 36px; }
+            .pagination { padding: 10px 16px; flex-wrap: wrap; gap: 4px; }
+            .page-btn { width: 28px; height: 28px; font-size: 12px; }
+        }
+
+        @media (max-width: 380px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-value { font-size: 20px; }
+            .nav-item { font-size: 9px; padding: 5px 6px; }
+        }
     </style>
 </head>
 <body>
@@ -714,16 +792,16 @@
 
     <nav class="nav">
         <div class="nav-label">Menu</div>
-        <button class="nav-item active" onclick="showTab('overview')">
+        <button class="nav-item active" onclick="showTab('overview', this)">
             <span class="nav-icon">📊</span> Visão Geral
         </button>
-        <button class="nav-item" onclick="showTab('notas')">
+        <button class="nav-item" onclick="showTab('notas', this)">
             <span class="nav-icon">📋</span> Notas Fiscais
         </button>
-        <button class="nav-item" onclick="showTab('busca')">
+        <button class="nav-item" onclick="showTab('busca', this)">
             <span class="nav-icon">🔍</span> Buscar NF
         </button>
-        <button class="nav-item" onclick="showTab('pdf')">
+        <button class="nav-item" onclick="showTab('pdf', this)">
             <span class="nav-icon">📄</span> Ler PDF
         </button>
     </nav>
@@ -868,11 +946,11 @@ let paginaAtual = 1;
 const POR_PAGINA = 20;
 
 // ── TABS ──
-function showTab(tab) {
+function showTab(tab, el) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
-    event.currentTarget.classList.add('active');
+    if (el) el.classList.add('active');
     const titles = { overview: 'Visão Geral', notas: 'Notas Fiscais', busca: 'Buscar NF', pdf: 'Ler PDF' };
     document.getElementById('pageTitle').textContent = titles[tab];
     if (tab === 'notas') renderTabela();
