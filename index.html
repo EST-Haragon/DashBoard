@@ -1332,9 +1332,10 @@ function showTab(tab, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
     if (el) el.classList.add('active');
-    const titles = { overview: 'Visão Geral', notas: 'Notas Fiscais', busca: 'Buscar NF', pdf: 'Ler PDF', config: 'Configurações' };
-    document.getElementById('pageTitle').textContent = titles[tab];
+    const titles = { overview: 'Visão Geral', notas: 'Notas Fiscais', busca: 'Buscar NF', pdf: 'Ler PDF', config: 'Configurações', usuarios: 'Usuários' };
+    document.getElementById('pageTitle').textContent = titles[tab] || tab;
     if (tab === 'notas') renderTabela();
+    if (tab === 'usuarios') carregarUsuarios();
 }
 
 // ── JSONP ──
@@ -1862,13 +1863,6 @@ async function excluirUsuario(email) {
         showToast('✓ Usuário excluído', 'success');
         carregarUsuarios();
     } catch(e) { showToast('Erro ao excluir', 'error'); }
-}
-
-// ── TABS override to load users ──
-const _origShowTab = showTab;
-function showTab(tab, el) {
-    _origShowTab(tab, el);
-    if (tab === 'usuarios') carregarUsuarios();
 }
 
 // ── INIT ──
