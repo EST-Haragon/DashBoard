@@ -1119,6 +1119,9 @@
         <button class="nav-item" onclick="showTab('usuarios', this)">
             <span class="nav-icon">👥</span> Usuários
         </button>
+        <button class="nav-item" onclick="showTab('lojas', this)">
+            <span class="nav-icon">🏪</span> Lojas
+        </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -1315,6 +1318,27 @@
             </div>
         </div>
 
+        <!-- ── TAB: LOJAS ── -->
+        <div id="tab-lojas" class="tab-content">
+            <div class="add-user-form">
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;">Cadastrar Loja</div>
+                <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">As lojas cadastradas aqui aparecerão no seletor do scanner.</div>
+                <div style="display:flex;gap:10px;align-items:flex-end;">
+                    <div class="form-field" style="flex:1;margin:0;">
+                        <label>Nome da Loja</label>
+                        <input type="text" id="newLojaNome" placeholder="Ex: Shopee SP, ML RJ..." 
+                            onkeydown="if(event.key==='Enter') cadastrarLoja()">
+                    </div>
+                    <button class="btn btn-primary" onclick="cadastrarLoja()" style="padding:10px 24px;white-space:nowrap;">
+                        ➕ Cadastrar
+                    </button>
+                </div>
+            </div>
+            <div id="listaLojas">
+                <div class="loading"><div class="spinner"></div> Carregando lojas...</div>
+            </div>
+        </div>
+
     </div><!-- /.content -->
 </main><!-- /.main -->
 
@@ -1335,10 +1359,11 @@ function showTab(tab, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
     if (el) el.classList.add('active');
-    const titles = { overview: 'Visão Geral', notas: 'Notas Fiscais', busca: 'Buscar NF', pdf: 'Ler PDF', config: 'Configurações', usuarios: 'Usuários' };
+    const titles = { overview: 'Visão Geral', notas: 'Notas Fiscais', busca: 'Buscar NF', pdf: 'Ler PDF', config: 'Configurações', usuarios: 'Usuários', lojas: 'Lojas' };
     document.getElementById('pageTitle').textContent = titles[tab] || tab;
     if (tab === 'notas') renderTabela();
     if (tab === 'usuarios') carregarUsuarios();
+    if (tab === 'lojas') carregarLojasDash();
 }
 
 // ── JSONP ──
@@ -1878,6 +1903,69 @@ async function excluirUsuario(email) {
         showToast('✓ Usuário excluído', 'success');
         carregarUsuarios();
     } catch(e) { showToast('Erro ao excluir', 'error'); }
+}
+
+// ── LOJAS ──
+async function carregarLojasDash() {
+    const el = document.getElementById('listaLojas');
+    el.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+    try {
+        const lista = await jsonpRequest({ action: 'listarLojas' });
+        renderLojasDash(Array.isArray(lista) ? lista : []);
+    } catch(e) {
+        el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Erro ao carregar lojas</div></div>';
+    }
+}
+
+function renderLojasDash(lista) {
+    const el = document.getElementById('listaLojas');
+    if (!lista.length) {
+        el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏪</div><div class="empty-state-text">Nenhuma loja cadastrada ainda</div></div>';
+        return;
+    }
+    el.innerHTML = lista.map(nome => `
+        <div class="user-card">
+            <div class="user-info">
+                <div class="user-avatar" style="background:var(--blue);">🏪</div>
+                <div>
+                    <div class="user-name">${nome}</div>
+                    <div class="user-email">Disponível no scanner</div>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn-icon" onclick="excluirLoja('${nome.replace(/'/g,"\\'")}')\" title="Excluir">🗑️</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function cadastrarLoja() {
+    const input = document.getElementById('newLojaNome');
+    const nome = input.value.trim();
+    if (!nome) { showToast('Digite o nome da loja', 'error'); return; }
+    try {
+        const res = await jsonpRequest({ action: 'adicionarLoja', nome });
+        if (res && res.ok) {
+            showToast(res.jaExistia ? '⚠️ Loja já cadastrada' : '✓ Loja cadastrada!', res.jaExistia ? '' : 'success');
+            input.value = '';
+            carregarLojasDash();
+        } else {
+            showToast(res?.erro || 'Erro ao cadastrar', 'error');
+        }
+    } catch(e) { showToast('Sem conexão', 'error'); }
+}
+
+async function excluirLoja(nome) {
+    if (!confirm(`Excluir a loja "${nome}"?\nEla não aparecerá mais no scanner.`)) return;
+    try {
+        const res = await jsonpRequest({ action: 'excluirLoja', nome });
+        if (res && res.ok) {
+            showToast('✓ Loja excluída', 'success');
+            carregarLojasDash();
+        } else {
+            showToast(res?.erro || 'Erro ao excluir', 'error');
+        }
+    } catch(e) { showToast('Sem conexão', 'error'); }
 }
 
 // ── INIT ──
