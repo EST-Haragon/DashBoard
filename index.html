@@ -1012,12 +1012,13 @@
             }
             .nav-item {
                 flex-direction: column;
-                gap: 3px;
-                padding: 6px 10px;
-                font-size: 10px;
-                border-radius: 10px;
+                gap: 2px;
+                padding: 5px 6px;
+                font-size: 9px;
+                border-radius: 8px;
                 text-align: center;
                 flex: 1;
+                min-width: 0;
             }
             .nav-icon { font-size: 20px; opacity: 1; }
             .main { margin-left: 0; padding-bottom: 72px; }
@@ -1372,14 +1373,15 @@ async function sincronizar() {
             todasNotas = notas;
             localStorage.setItem('dashNotas', JSON.stringify(notas));
             renderOverview();
-            renderTabela();
+            // Só atualiza tabela se a aba Notas estiver ativa
+            if (document.getElementById('tab-notas').classList.contains('active')) renderTabela();
             setSyncStatus('ok', 'Conectado');
             document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
             showToast('✓ ' + notas.length + ' notas carregadas', 'success');
         }
     } catch(e) {
         const cached = localStorage.getItem('dashNotas');
-        if (cached) { todasNotas = JSON.parse(cached); renderOverview(); renderTabela(); }
+        if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e2) {} }
         setSyncStatus('error', 'Sem conexão');
         showToast('Usando dados em cache', 'error');
     }
@@ -1694,25 +1696,31 @@ function showToast(msg, type = '') {
     setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ── SENHA ──
-const SENHA_KEY = 'qgk_senha_edicao';
-
-function alterarSenha() {
+// ── SENHA DE EDIÇÃO DE LOJA ──
+async function alterarSenha() {
     const atual   = document.getElementById('senhaAtual').value;
     const nova    = document.getElementById('senhaNova').value;
     const confirm = document.getElementById('senhaConfirm').value;
-    const salva   = localStorage.getItem(SENHA_KEY) || '1234';
 
-    if (atual !== salva) { showToast('Senha atual incorreta', 'error'); return; }
     if (!nova)           { showToast('Digite a nova senha', 'error'); return; }
     if (nova !== confirm){ showToast('As senhas não coincidem', 'error'); return; }
     if (nova.length < 4) { showToast('Senha deve ter pelo menos 4 caracteres', 'error'); return; }
 
-    localStorage.setItem(SENHA_KEY, nova);
-    document.getElementById('senhaAtual').value  = '';
-    document.getElementById('senhaNova').value   = '';
-    document.getElementById('senhaConfirm').value= '';
-    showToast('✓ Senha alterada com sucesso!', 'success');
+    try {
+        const res = await jsonpRequest({
+            action: 'alterarSenhaEdicao',
+            senhaAtual: hashSenha(atual),
+            senhaNova:  hashSenha(nova)
+        });
+        if (res && res.ok) {
+            document.getElementById('senhaAtual').value  = '';
+            document.getElementById('senhaNova').value   = '';
+            document.getElementById('senhaConfirm').value= '';
+            showToast('✓ Senha de edição atualizada!', 'success');
+        } else {
+            showToast(res?.erro || 'Erro ao salvar senha', 'error');
+        }
+    } catch(e) { showToast('Sem conexão com servidor', 'error'); }
 }
 
 // ── AUTH ──
@@ -1720,7 +1728,6 @@ const SESSION_KEY = 'qgk_session';
 let usuarioLogado = null;
 
 function hashSenha(s) {
-    // Simple hash para armazenar — não é criptografia real mas evita plain text
     let h = 0;
     for (let i = 0; i < s.length; i++) { h = Math.imul(31, h) + s.charCodeAt(i) | 0; }
     return 'h' + Math.abs(h).toString(36);
@@ -1761,6 +1768,8 @@ function mostrarErroLogin(msg) {
     el.style.display = 'block';
 }
 
+let _syncInterval = null;
+
 function mostrarDashboard() {
     document.getElementById('loginScreen').classList.add('hidden');
     const ini = (usuarioLogado.nome || usuarioLogado.email).charAt(0).toUpperCase();
@@ -1771,16 +1780,20 @@ function mostrarDashboard() {
             if (b.textContent.includes('Usuários')) b.style.display = 'none';
         });
     }
-    // Carrega cache e sincroniza
     const cached = localStorage.getItem('dashNotas');
-    if (cached) { todasNotas = JSON.parse(cached); renderOverview(); }
+    if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e) {} }
     sincronizar();
-    setInterval(sincronizar, 60000);
+    if (_syncInterval) clearInterval(_syncInterval);
+    _syncInterval = setInterval(sincronizar, 60000);
 }
 
 function logout() {
+    if (_syncInterval) { clearInterval(_syncInterval); _syncInterval = null; }
     localStorage.removeItem(SESSION_KEY);
     usuarioLogado = null;
+    todasNotas = [];
+    // Restaura nav (caso algum item estivesse oculto)
+    document.querySelectorAll('.nav-item').forEach(b => b.style.display = '');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginSenha').value = '';
