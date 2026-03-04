@@ -1458,12 +1458,18 @@ function renderOverview() {
     const horas = Array(24).fill(0);
     todasNotas.forEach(n => {
         if (n.dataHora) {
-            const match = String(n.dataHora).match(/T(\d{2}):/);
-            if (match) horas[parseInt(match[1])]++;
-            else {
-                const m2 = String(n.dataHora).match(/(\d{2}):(\d{2})/);
-                if (m2) horas[parseInt(m2[1])]++;
+            const s = String(n.dataHora);
+            let hora = -1;
+            if (s.includes('T') && s.includes('Z')) {
+                // ISO UTC → BRT (UTC-3)
+                const dt = new Date(s);
+                hora = (dt.getUTCHours() - 3 + 24) % 24;
+            } else {
+                // dd/MM/yyyy HH:mm ou HH:mm:ss
+                const m = s.match(/(\d{2}):(\d{2})/);
+                if (m) hora = parseInt(m[1]);
             }
+            if (hora >= 0 && hora < 24) horas[hora]++;
         }
     });
     const maxH = Math.max(...horas, 1);
@@ -1525,16 +1531,20 @@ function renderTabela() {
         if (filterFoto === 'sim' && !n.temFoto) return false;
         if (filterFoto === 'nao' && n.temFoto) return false;
         if (filterDia) {
-            // Compara a data da nota com o dia selecionado
             const dataStr = String(n.dataHora || '');
             let diaNota = '';
             if (dataStr.includes('T')) {
-                // ISO format: 2026-02-25T11:06:00.000Z
-                diaNota = dataStr.substring(0, 10);
-            } else {
-                // dd/mm/yyyy hh:mm → converte para yyyy-mm-dd
-                const m = dataStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-                if (m) diaNota = `${m[3]}-${m[2]}-${m[1]}`;
+                // ISO UTC → converte para data local BRT
+                const dt = new Date(dataStr);
+                const brt = new Date(dt.getTime() - 3 * 60 * 60 * 1000);
+                diaNota = brt.toISOString().substring(0, 10);
+            } else if (dataStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+                // dd/MM/yyyy HH:mm:ss → pega só a parte da data antes do espaço
+                const dataParte = dataStr.split(' ')[0]; // "dd/MM/yyyy"
+                const partes = dataParte.split('/');     // ["dd","MM","yyyy"]
+                if (partes.length === 3) {
+                    diaNota = `${partes[2]}-${partes[1]}-${partes[0]}`; // yyyy-MM-dd
+                }
             }
             if (diaNota !== filterDia) return false;
         }
@@ -1708,11 +1718,21 @@ async function processarPDF(file) {
 function formatarData(d) {
     if (!d) return '–';
     try {
-        if (String(d).includes('T')) {
-            const dt = new Date(d);
-            return dt.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        const s = String(d);
+        // Formato ISO: 2026-03-03T12:53:03.072Z → converte para BRT
+        if (s.includes('T') && s.includes('Z')) {
+            const dt = new Date(s);
+            return dt.toLocaleString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                day:'2-digit', month:'2-digit', year:'numeric',
+                hour:'2-digit', minute:'2-digit'
+            });
         }
-        return String(d);
+        // Formato dd/MM/yyyy HH:mm:ss — já legível, retorna direto (sem segundos)
+        if (s.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+            return s.substring(0, 16); // dd/MM/yyyy HH:mm
+        }
+        return s;
     } catch { return String(d); }
 }
 
@@ -1804,9 +1824,11 @@ function mostrarDashboard() {
     document.getElementById('topbarNome').textContent   = usuarioLogado.nome || usuarioLogado.email;
     if (usuarioLogado.role !== 'admin') {
         document.querySelectorAll('.nav-item').forEach(b => {
-            if (b.textContent.includes('Usuários')) b.style.display = 'none';
+            if (b.textContent.includes('Usuários') || b.textContent.includes('Lojas')) b.style.display = 'none';
         });
     }
+    // Garante que começa sempre na aba Visão Geral
+    showTab('overview', document.querySelector('.nav-item'));
     const cached = localStorage.getItem('dashNotas');
     if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e) {} }
     sincronizar();
@@ -1933,7 +1955,7 @@ function renderLojasDash(lista) {
                 </div>
             </div>
             <div class="user-actions">
-                <button class="btn-icon" onclick="excluirLoja('${nome.replace(/'/g,"\\'")}')\" title="Excluir">🗑️</button>
+                <button class="btn-icon" onclick="excluirLoja(this.dataset.nome)" data-nome="${nome.replace(/"/g,'&quot;')}" title="Excluir">🗑️</button>
             </div>
         </div>
     `).join('');
@@ -1955,7 +1977,9 @@ async function cadastrarLoja() {
     } catch(e) { showToast('Sem conexão', 'error'); }
 }
 
-async function excluirLoja(nome) {
+async function excluirLoja(el) {
+    const nome = typeof el === 'string' ? el : el.dataset.nome;
+    if (!nome) return;
     if (!confirm(`Excluir a loja "${nome}"?\nEla não aparecerá mais no scanner.`)) return;
     try {
         const res = await jsonpRequest({ action: 'excluirLoja', nome });
@@ -1991,4 +2015,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
