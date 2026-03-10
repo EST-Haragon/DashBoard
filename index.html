@@ -782,6 +782,15 @@ function jsonpRequest(params) {
 // ══════════════════════════════════════════
 // SYNC
 // ══════════════════════════════════════════
+/** Re-renderiza todas as abas que estiverem ativas no momento,
+ *  garantindo que qualquer atualização de todasNotas reflita
+ *  imediatamente na tela, independente da aba aberta. */
+function renderAbasAtivas() {
+  renderOverview();
+  if (document.getElementById('tab-desempenho').classList.contains('active')) renderDesempenho();
+  if (document.getElementById('tab-notas').classList.contains('active')) renderTabela();
+}
+
 async function sincronizar() {
   setSyncStatus('syncing', 'Sincronizando...');
   try {
@@ -789,16 +798,14 @@ async function sincronizar() {
     if (Array.isArray(notas)) {
       todasNotas = notas;
       localStorage.setItem('dashNotas', JSON.stringify(notas));
-      renderOverview();
-      if (document.getElementById('tab-notas').classList.contains('active')) renderTabela();
-      if (document.getElementById('tab-desempenho').classList.contains('active')) renderDesempenho();
+      renderAbasAtivas();
       setSyncStatus('ok', 'Conectado');
       document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
       showToast('✓ ' + notas.length + ' notas carregadas', 'success');
     }
   } catch(e) {
     const cached = localStorage.getItem('dashNotas');
-    if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e2) {} }
+    if (cached) { try { todasNotas = JSON.parse(cached); renderAbasAtivas(); } catch(e2) {} }
     setSyncStatus('error', 'Sem conexão');
     showToast('Usando dados em cache', 'error');
   }
@@ -1587,7 +1594,7 @@ function mostrarDashboard() {
   const primeiroNavVisivel = [...document.querySelectorAll('.nav-item')].find(b => b.style.display !== 'none');
   showTab('overview', primeiroNavVisivel);
   const cached = localStorage.getItem('dashNotas');
-  if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e) {} }
+  if (cached) { try { todasNotas = JSON.parse(cached); renderAbasAtivas(); } catch(e) {} }
   sincronizar();
   if (_syncInterval) clearInterval(_syncInterval);
   _syncInterval = setInterval(sincronizar, 60000);
