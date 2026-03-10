@@ -1548,14 +1548,20 @@ async function fazerLogin() {
       usuarioLogado = { nome: res.nome, email: res.email, role: res.role };
       localStorage.setItem(SESSION_KEY, JSON.stringify(usuarioLogado));
       mostrarDashboard();
+      return; // sai antes do finally reabilitar o botão (já mudou de tela)
     } else {
       mostrarErroLogin(res?.erro || 'Email ou senha incorretos.');
     }
   } catch(e) {
-    mostrarErroLogin('Sem conexão com o servidor.');
+    mostrarErroLogin(
+      e?.message === 'Timeout'
+        ? 'Servidor demorou demais. Tente novamente.'
+        : 'Sem conexão com o servidor.'
+    );
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
   }
-  btn.disabled = false;
-  btn.textContent = 'Entrar';
 }
 
 function mostrarErroLogin(msg) {
