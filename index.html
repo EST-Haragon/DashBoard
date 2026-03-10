@@ -109,7 +109,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 /* ── CHARTS GRID ── */
 .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); overflow: hidden; }
 .chart-card.full { grid-column: 1 / -1; }
 .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .chart-title { font-size: 14px; font-weight: 600; color: var(--text); }
@@ -129,10 +129,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 /* ── HOUR CHART ── */
 .hour-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
-.hour-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.hour-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
 .hour-bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.5s ease; opacity: 0.85; }
 .hour-bar:hover { opacity: 1; }
-.hour-label { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.hour-label { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; overflow: hidden; text-overflow: clip; white-space: nowrap; width: 100%; text-align: center; }
 
 /* ── TABLE ── */
 .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
@@ -572,7 +572,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); }
             <div class="chart-sub" id="desempChartSub">NFs por unidade de tempo</div>
           </div>
         </div>
-        <div id="desempChart" style="display:flex;align-items:flex-end;gap:4px;height:140px;"></div>
+        <div id="desempChart" style="display:flex;align-items:flex-end;gap:4px;height:140px;overflow-x:hidden;width:100%;"></div>
       </div>
 
       <!-- Ranking de colaboradores -->
@@ -915,24 +915,31 @@ function renderOverview() {
  *  garantindo consistência com os ranges de getPeriodRange (que usam new Date() local).
  */
 function notaParaDate(nota) {
-  const s = String(nota.dataHora || '');
+  const s = String(nota.dataHora || '').trim();
   if (!s) return null;
   try {
+    // Formato ISO com timezone (ex: "2026-03-10T09:15:30Z" ou "...+00:00")
     if (s.includes('T') && (s.includes('Z') || s.includes('+'))) {
-      // Converte UTC → BRT (UTC-3) e devolve como Date local
       const utc = new Date(s);
       const brtMs = utc.getTime() - 3 * 60 * 60 * 1000;
       const brt = new Date(brtMs);
-      // Reconstrói como Date local usando componentes BRT
-      return new Date(
-        brt.getUTCFullYear(), brt.getUTCMonth(), brt.getUTCDate(),
-        brt.getUTCHours(), brt.getUTCMinutes(), brt.getUTCSeconds()
-      );
+      return new Date(brt.getUTCFullYear(), brt.getUTCMonth(), brt.getUTCDate(),
+        brt.getUTCHours(), brt.getUTCMinutes(), brt.getUTCSeconds());
     }
-    // dd/MM/yyyy HH:mm (já está em BRT, vindo da planilha)
-    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-    if (m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
-    return null;
+    // Formato ISO sem timezone (ex: "2026-03-10T09:15:30" — trata como BRT local)
+    if (s.includes('T')) {
+      const d = new Date(s);
+      if (!isNaN(d)) return d;
+    }
+    // Formato da planilha: "dd/MM/yyyy HH:mm:ss" ou "dd/MM/yyyy HH:mm"
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})[\s,T]+(\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +(m[6]||0));
+    // Formato ISO só data: "yyyy-MM-dd"
+    const d2 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (d2) return new Date(+d2[1], +d2[2]-1, +d2[3]);
+    // Último recurso: deixa o JS tentar
+    const fallback = new Date(s);
+    return isNaN(fallback) ? null : fallback;
   } catch { return null; }
 }
 
