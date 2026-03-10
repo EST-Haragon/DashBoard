@@ -1,1346 +1,720 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QGK – Dashboard DANFE</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        :root {
-            --bg: #f4f5f7;
-            --surface: #ffffff;
-            --surface2: #f9fafb;
-            --border: #e5e7eb;
-            --border2: #d1d5db;
-            --text: #111827;
-            --text2: #6b7280;
-            --text3: #9ca3af;
-            --accent: #111827;
-            --accent2: #374151;
-            --green: #059669;
-            --green-bg: #ecfdf5;
-            --blue: #2563eb;
-            --blue-bg: #eff6ff;
-            --orange: #d97706;
-            --orange-bg: #fffbeb;
-            --red: #dc2626;
-            --red-bg: #fef2f2;
-            --radius: 12px;
-            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-            --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
-
-        /* ── SIDEBAR ── */
-        .sidebar {
-            position: fixed;
-            top: 0; left: 0;
-            width: 240px;
-            height: 100vh;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 28px 20px;
-            z-index: 100;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 36px;
-        }
-
-        .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--accent);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .logo-icon svg { width: 18px; height: 18px; fill: white; }
-
-        .logo-text {
-            font-family: 'Syne', sans-serif;
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: var(--text);
-        }
-
-        .logo-sub {
-            font-size: 10px;
-            color: var(--text3);
-            font-weight: 400;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-top: -2px;
-            display: block;
-        }
-
-        .nav { flex: 1; }
-
-        .nav-label {
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--text3);
-            margin-bottom: 8px;
-            padding: 0 8px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text2);
-            margin-bottom: 2px;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-        }
-
-        .nav-item:hover { background: var(--bg); color: var(--text); }
-        .nav-item.active { background: var(--accent); color: white; }
-        .nav-item.active .nav-icon { opacity: 1; }
-
-        .nav-icon { font-size: 16px; opacity: 0.6; }
-        .nav-item.active .nav-icon { opacity: 1; }
-
-        .sidebar-footer {
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .sync-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text3);
-            padding: 8px 12px;
-        }
-
-        .sync-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--green);
-            flex-shrink: 0;
-        }
-
-        .sync-dot.syncing { animation: pulse-dot 1s infinite; background: var(--orange); }
-        .sync-dot.error { background: var(--red); }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* ── MAIN ── */
-        .main {
-            margin-left: 240px;
-            min-height: 100vh;
-        }
-
-        /* ── TOPBAR ── */
-        .topbar {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 0 32px;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-
-        .page-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-
-        .topbar-actions { display: flex; gap: 10px; align-items: center; }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            font-family: 'DM Sans', sans-serif;
-            cursor: pointer;
-            border: none;
-            transition: all 0.15s;
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--text2);
-            border: 1px solid var(--border2);
-        }
-        .btn-ghost:hover { background: var(--bg); color: var(--text); }
-
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-        }
-        .btn-primary:hover { background: var(--accent2); }
-
-        .btn-danger {
-            background: var(--red-bg);
-            color: var(--red);
-            border: 1px solid #fecaca;
-        }
-        .btn-danger:hover { background: #fee2e2; }
-
-        /* ── CONTENT ── */
-        .content {
-            padding: 32px;
-        }
-
-        /* ── TABS ── */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* ── CARDS GRID ── */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text3);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-family: 'Syne', sans-serif;
-            font-size: 32px;
-            font-weight: 800;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-
-        .stat-sub {
-            font-size: 12px;
-            color: var(--text3);
-        }
-
-        .stat-card.green .stat-value { color: var(--green); }
-        .stat-card.blue .stat-value { color: var(--blue); }
-        .stat-card.orange .stat-value { color: var(--orange); }
-
-        /* ── CHARTS GRID ── */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .chart-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-        }
-
-        .chart-card.full { grid-column: 1 / -1; }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .chart-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .chart-sub {
-            font-size: 12px;
-            color: var(--text3);
-            margin-top: 2px;
-        }
-
-        /* ── BAR CHART ── */
-        .bar-chart { display: flex; flex-direction: column; gap: 12px; }
-
-        .bar-item { display: flex; align-items: center; gap: 12px; }
-
-        .bar-label {
-            font-size: 13px;
-            color: var(--text2);
-            min-width: 130px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-weight: 500;
-        }
-
-        .bar-track {
-            flex: 1;
-            height: 8px;
-            background: var(--bg);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: var(--accent);
-            transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-        }
-
-        .bar-fill.blue { background: var(--blue); }
-        .bar-fill.green { background: var(--green); }
-
-        .bar-value {
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text2);
-            min-width: 28px;
-            text-align: right;
-        }
-
-        /* ── HOUR CHART ── */
-        .hour-chart {
-            display: flex;
-            align-items: flex-end;
-            gap: 6px;
-            height: 120px;
-        }
-
-        .hour-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            height: 100%;
-            justify-content: flex-end;
-        }
-
-        .hour-bar {
-            width: 100%;
-            background: var(--accent);
-            border-radius: 4px 4px 0 0;
-            min-height: 2px;
-            transition: height 0.5s ease;
-            opacity: 0.85;
-        }
-
-        .hour-bar:hover { opacity: 1; }
-
-        .hour-label {
-            font-size: 9px;
-            color: var(--text3);
-            font-family: 'DM Mono', monospace;
-        }
-
-        /* ── TABLE ── */
-        .table-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        .table-header {
-            padding: 20px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .table-title { font-size: 14px; font-weight: 600; }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 14px;
-            width: 260px;
-        }
-
-        .search-box input {
-            border: none;
-            background: none;
-            outline: none;
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-            color: var(--text);
-            width: 100%;
-        }
-
-        .search-box input::placeholder { color: var(--text3); }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead th {
-            padding: 12px 16px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text3);
-            text-align: left;
-            background: var(--surface2);
-            border-bottom: 1px solid var(--border);
-        }
-
-        tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: background 0.1s;
-        }
-
-        tbody tr:last-child { border-bottom: none; }
-        tbody tr:hover { background: var(--surface2); }
-
-        tbody td {
-            padding: 13px 16px;
-            font-size: 13px;
-            color: var(--text);
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-green { background: var(--green-bg); color: var(--green); }
-        .badge-gray { background: var(--bg); color: var(--text2); }
-        .badge-blue { background: var(--blue-bg); color: var(--blue); }
-
-        .mono {
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-        }
-
-        /* ── SEARCH TAB ── */
-        .search-hero {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 32px;
-            box-shadow: var(--shadow);
-            margin-bottom: 24px;
-        }
-
-        .search-hero-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-
-        .search-hero-sub { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
-
-        .search-big {
-            display: flex;
-            gap: 12px;
-        }
-
-        .search-big input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 1.5px solid var(--border2);
-            border-radius: 10px;
-            font-size: 15px;
-            font-family: 'DM Sans', sans-serif;
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.15s;
-            background: var(--bg);
-        }
-
-        .search-big input:focus { border-color: var(--accent); background: white; }
-
-        .search-result-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px 24px;
-            box-shadow: var(--shadow);
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .search-result-left { display: flex; flex-direction: column; gap: 4px; }
-
-        .search-nf {
-            font-family: 'Syne', sans-serif;
-            font-size: 20px;
-            font-weight: 800;
-        }
-
-        .search-info { font-size: 13px; color: var(--text2); }
-
-        /* ── PDF TAB ── */
-        .pdf-zone {
-            background: var(--surface);
-            border: 2px dashed var(--border2);
-            border-radius: var(--radius);
-            padding: 60px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 24px;
-        }
-
-        .pdf-zone:hover { border-color: var(--accent); background: var(--surface2); }
-        .pdf-zone.drag-over { border-color: var(--blue); background: var(--blue-bg); }
-
-        .pdf-icon { font-size: 48px; margin-bottom: 16px; }
-        .pdf-zone-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-        .pdf-zone-sub { font-size: 13px; color: var(--text2); }
-
-        #pdfFileInput { display: none; }
-
-        .pdf-result {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-        }
-
-        .pdf-result-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
-
-        .pdf-text-content {
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            color: var(--text2);
-            background: var(--bg);
-            border-radius: 8px;
-            padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            line-height: 1.7;
-        }
-
-        /* ── LOADING ── */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 60px;
-            color: var(--text3);
-            font-size: 14px;
-            gap: 12px;
-        }
-
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px;
-            color: var(--text3);
-        }
-
-        .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
-        .empty-state-text { font-size: 14px; }
-
-        /* ── PAGINATION ── */
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: between;
-            padding: 14px 24px;
-            border-top: 1px solid var(--border);
-            gap: 8px;
-        }
-
-        .pagination-info { font-size: 13px; color: var(--text2); flex: 1; }
-
-        .page-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: white;
-            font-size: 13px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text2);
-            transition: all 0.15s;
-        }
-
-        .page-btn:hover { background: var(--bg); }
-        .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        /* ── TOAST ── */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: var(--text);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: var(--shadow-md);
-            z-index: 9999;
-            transform: translateY(80px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-
-        .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.success { background: var(--green); }
-        .toast.error { background: var(--red); }
-
-        .filter-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .filter-select {
-            padding: 8px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-            background: var(--surface);
-            color: var(--text);
-            outline: none;
-            cursor: pointer;
-        }
-
-        .filter-select:focus { border-color: var(--accent); }
-
-        /* ── LOGIN SCREEN ── */
-        .login-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9000;
-            padding: 20px;
-        }
-        .login-screen.hidden { display: none; }
-
-        .login-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: var(--shadow-md);
-        }
-
-        .login-logo {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .login-logo-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--text);
-            letter-spacing: -1px;
-        }
-
-        .login-logo-sub {
-            font-size: 12px;
-            color: var(--text3);
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-
-        .login-field {
-            margin-bottom: 14px;
-        }
-
-        .login-field label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text2);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 6px;
-            font-family: 'DM Mono', monospace;
-        }
-
-        .login-field input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid var(--border2);
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
-            background: var(--surface2);
-            color: var(--text);
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .login-field input:focus {
-            border-color: var(--accent);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(17,24,39,0.07);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 13px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: 'DM Sans', sans-serif;
-            cursor: pointer;
-            margin-top: 8px;
-            transition: all 0.18s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .login-btn:hover { background: var(--accent2); transform: translateY(-1px); }
-        .login-btn:disabled { background: var(--border); color: var(--text3); cursor: not-allowed; transform: none; }
-
-        .login-error {
-            background: var(--red-bg);
-            color: var(--red);
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            margin-bottom: 14px;
-            display: none;
-            font-weight: 500;
-        }
-
-        /* ── USER MANAGEMENT ── */
-        .user-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            box-shadow: var(--shadow);
-            transition: all 0.15s;
-        }
-
-        .user-card:hover { border-color: var(--border2); }
-
-        .user-info { display: flex; align-items: center; gap: 14px; }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--accent);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .user-avatar.admin { background: var(--blue); }
-        .user-avatar.inactive { background: var(--border2); color: var(--text3); }
-
-        .user-name { font-weight: 600; font-size: 14px; color: var(--text); }
-        .user-email { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
-
-        .user-actions { display: flex; align-items: center; gap: 8px; }
-
-        .role-badge {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .role-badge.admin { background: var(--blue-bg); color: var(--blue); }
-        .role-badge.scanner { background: var(--green-bg); color: var(--green); }
-        .role-badge.inativo { background: var(--bg); color: var(--text3); border: 1px solid var(--border); }
-
-        .user-toggle {
-            width: 36px;
-            height: 20px;
-            background: var(--border2);
-            border-radius: 10px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.2s;
-            border: none;
-            flex-shrink: 0;
-        }
-
-        .user-toggle.active { background: var(--green); }
-
-        .user-toggle::after {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background: white;
-            border-radius: 50%;
-            top: 3px;
-            left: 3px;
-            transition: transform 0.2s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-
-        .user-toggle.active::after { transform: translateX(16px); }
-
-        .btn-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            transition: all 0.15s;
-            color: var(--text2);
-        }
-
-        .btn-icon:hover { background: var(--red-bg); border-color: #fecaca; color: var(--red); }
-
-        .add-user-form {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .form-field label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text2);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 6px;
-            font-family: 'DM Mono', monospace;
-        }
-
-        .form-field input, .form-field select {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1.5px solid var(--border2);
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-            background: var(--surface2);
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-field input:focus, .form-field select:focus {
-            border-color: var(--accent);
-            background: white;
-        }
-
-        /* ── TOPBAR LOGOUT ── */
-        .topbar-user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface2);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text2);
-            transition: all 0.15s;
-        }
-
-        .topbar-user:hover { background: var(--bg); }
-
-        .topbar-avatar {
-            width: 28px;
-            height: 28px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 1100px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .charts-grid { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: fixed;
-                bottom: 0;
-                top: auto;
-                left: 0;
-                right: 0;
-                flex-direction: row;
-                padding: 8px 12px;
-                border-right: none;
-                border-top: 1px solid var(--border);
-                z-index: 200;
-                justify-content: space-around;
-                align-items: center;
-            }
-            .logo { display: none; }
-            .nav-label { display: none; }
-            .sidebar-footer { display: none; }
-            .nav {
-                display: flex;
-                flex-direction: row;
-                gap: 4px;
-                width: 100%;
-                justify-content: space-around;
-            }
-            .nav-item {
-                flex-direction: column;
-                gap: 2px;
-                padding: 5px 6px;
-                font-size: 9px;
-                border-radius: 8px;
-                text-align: center;
-                flex: 1;
-                min-width: 0;
-            }
-            .nav-icon { font-size: 20px; opacity: 1; }
-            .main { margin-left: 0; padding-bottom: 72px; }
-            .topbar { padding: 0 16px; height: 56px; }
-            .page-title { font-size: 16px; }
-            .topbar-actions { gap: 6px; }
-            .btn { padding: 6px 10px; font-size: 12px; }
-            #lastUpdate { display: none; }
-            .content { padding: 16px; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
-            .stat-card { padding: 14px; }
-            .stat-value { font-size: 24px; }
-            .stat-label { font-size: 10px; }
-            .charts-grid { gap: 12px; margin-bottom: 16px; }
-            .chart-card { padding: 16px; }
-            .bar-label { min-width: 90px; font-size: 12px; }
-            .hour-chart { height: 80px; gap: 3px; }
-            .hour-label { font-size: 7px; }
-            .table-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; }
-            .search-box { width: 100%; }
-            table { font-size: 12px; }
-            thead th { padding: 10px; font-size: 10px; }
-            tbody td { padding: 10px; }
-            .filter-row { gap: 8px; }
-            .filter-select { font-size: 12px; padding: 7px 10px; flex: 1; }
-            .search-hero { padding: 20px; }
-            .search-hero-title { font-size: 18px; }
-            .search-big { flex-direction: column; }
-            .search-big input { font-size: 14px; padding: 12px 14px; }
-            .search-result-card { flex-direction: column; gap: 12px; padding: 16px; }
-            .search-nf { font-size: 18px; }
-            .pdf-zone { padding: 36px 20px; }
-            .pdf-icon { font-size: 36px; }
-            .pagination { padding: 10px 16px; flex-wrap: wrap; gap: 4px; }
-            .page-btn { width: 28px; height: 28px; font-size: 12px; }
-        }
-
-        @media (max-width: 380px) {
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-            .stat-value { font-size: 20px; }
-            .nav-item { font-size: 9px; padding: 5px 6px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QGK – Dashboard DANFE</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface2: #f9fafb;
+  --border: #e5e7eb;
+  --border2: #d1d5db;
+  --text: #111827;
+  --text2: #6b7280;
+  --text3: #9ca3af;
+  --accent: #111827;
+  --accent2: #374151;
+  --green: #059669;
+  --green-bg: #ecfdf5;
+  --blue: #2563eb;
+  --blue-bg: #eff6ff;
+  --orange: #d97706;
+  --orange-bg: #fffbeb;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --purple: #7c3aed;
+  --purple-bg: #f5f3ff;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: 240px; height: 100vh;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 28px 20px; z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; }
+.logo-icon {
+  width: 36px; height: 36px; background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.logo-icon svg { width: 18px; height: 18px; fill: white; }
+.logo-text { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+.logo-sub { font-size: 10px; color: var(--text3); font-weight: 400; letter-spacing: 1px; text-transform: uppercase; margin-top: -2px; display: block; }
+.nav { flex: 1; }
+.nav-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; padding: 0 8px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  font-size: 14px; font-weight: 500; color: var(--text2);
+  margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent); color: white; }
+.nav-icon { font-size: 16px; opacity: 0.6; }
+.nav-item.active .nav-icon { opacity: 1; }
+.sidebar-footer { padding-top: 20px; border-top: 1px solid var(--border); }
+.sync-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text3); padding: 8px 12px; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.sync-dot.syncing { animation: pulse-dot 1s infinite; background: var(--orange); }
+.sync-dot.error { background: var(--red); }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ── MAIN ── */
+.main { margin-left: 240px; min-height: 100vh; }
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 64px; display: flex; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 50;
+}
+.page-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.btn {
+  display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border-radius: 8px; font-size: 13px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; transition: all 0.15s;
+}
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { background: var(--bg); color: var(--text); }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+
+/* ── CONTENT ── */
+.content { padding: 32px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── STATS GRID ── */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.stat-label { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.stat-sub { font-size: 12px; color: var(--text3); }
+.stat-card.green .stat-value { color: var(--green); }
+.stat-card.blue .stat-value { color: var(--blue); }
+.stat-card.orange .stat-value { color: var(--orange); }
+.stat-card.purple .stat-value { color: var(--purple); }
+
+/* ── CHARTS GRID ── */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.chart-card.full { grid-column: 1 / -1; }
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.chart-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.chart-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* ── BAR CHART ── */
+.bar-chart { display: flex; flex-direction: column; gap: 12px; }
+.bar-item { display: flex; align-items: center; gap: 12px; }
+.bar-label { font-size: 13px; color: var(--text2); min-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.bar-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.bar-fill.blue { background: var(--blue); }
+.bar-fill.green { background: var(--green); }
+.bar-fill.purple { background: var(--purple); }
+.bar-fill.orange { background: var(--orange); }
+.bar-value { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text2); min-width: 28px; text-align: right; }
+
+/* ── HOUR CHART ── */
+.hour-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
+.hour-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.hour-bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.5s ease; opacity: 0.85; }
+.hour-bar:hover { opacity: 1; }
+.hour-label { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+/* ── TABLE ── */
+.table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.table-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.table-title { font-size: 14px; font-weight: 600; }
+.search-box { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; width: 260px; }
+.search-box input { border: none; background: none; outline: none; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); width: 100%; }
+.search-box input::placeholder { color: var(--text3); }
+table { width: 100%; border-collapse: collapse; }
+thead th { padding: 12px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); text-align: left; background: var(--surface2); border-bottom: 1px solid var(--border); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-gray { background: var(--bg); color: var(--text2); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+/* ── SEARCH TAB ── */
+.search-hero { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); margin-bottom: 24px; }
+.search-hero-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.search-hero-sub { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+.search-big { display: flex; gap: 12px; }
+.search-big input { flex: 1; padding: 14px 18px; border: 1.5px solid var(--border2); border-radius: 10px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; transition: border-color 0.15s; background: var(--bg); }
+.search-big input:focus { border-color: var(--accent); background: white; }
+.search-result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.search-result-left { display: flex; flex-direction: column; gap: 4px; }
+.search-nf { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+.search-info { font-size: 13px; color: var(--text2); }
+
+/* ── PDF TAB ── */
+.pdf-zone { background: var(--surface); border: 2px dashed var(--border2); border-radius: var(--radius); padding: 60px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 24px; }
+.pdf-zone:hover { border-color: var(--accent); background: var(--surface2); }
+.pdf-zone.drag-over { border-color: var(--blue); background: var(--blue-bg); }
+.pdf-icon { font-size: 48px; margin-bottom: 16px; }
+.pdf-zone-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.pdf-zone-sub { font-size: 13px; color: var(--text2); }
+#pdfFileInput { display: none; }
+.pdf-result { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.pdf-result-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
+.pdf-text-content { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); background: var(--bg); border-radius: 8px; padding: 20px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; line-height: 1.7; }
+
+/* ── LOADING / EMPTY ── */
+.loading { display: flex; align-items: center; justify-content: center; padding: 60px; color: var(--text3); font-size: 14px; gap: 12px; }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 60px; color: var(--text3); }
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-text { font-size: 14px; }
+
+/* ── PAGINATION ── */
+.pagination { display: flex; align-items: center; padding: 14px 24px; gap: 8px; border-top: 1px solid var(--border); }
+.pagination-info { font-size: 13px; color: var(--text2); flex: 1; }
+.page-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: white; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text2); transition: all 0.15s; }
+.page-btn:hover:not(:disabled) { background: var(--bg); }
+.page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-md); z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+
+/* ── FILTERS ── */
+.filter-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.filter-select { padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text); outline: none; cursor: pointer; }
+.filter-select:focus { border-color: var(--accent); }
+
+/* ── LOGIN ── */
+.login-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9000; padding: 20px; }
+.login-screen.hidden { display: none; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); }
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+.login-logo-sub { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+.login-field { margin-bottom: 14px; }
+.login-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; font-family: 'DM Mono', monospace; }
+.login-field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border2); border-radius: 10px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--surface2); color: var(--text); outline: none; transition: all 0.2s; }
+.login-field input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(17,24,39,0.07); }
+.login-btn { width: 100%; padding: 13px; background: var(--accent); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 8px; transition: all 0.18s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.login-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+.login-btn:disabled { background: var(--border); color: var(--text3); cursor: not-allowed; transform: none; }
+.login-error { background: var(--red-bg); color: var(--red); border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; display: none; font-weight: 500; }
+
+/* ── USER MANAGEMENT ── */
+.user-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; box-shadow: var(--shadow); transition: all 0.15s; }
+.user-card:hover { border-color: var(--border2); }
+.user-info { display: flex; align-items: center; gap: 14px; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.user-avatar.admin { background: var(--blue); }
+.user-avatar.inactive { background: var(--border2); color: var(--text3); }
+.user-name { font-weight: 600; font-size: 14px; color: var(--text); }
+.user-email { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.user-actions { display: flex; align-items: center; gap: 8px; }
+.role-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.role-badge.admin { background: var(--blue-bg); color: var(--blue); }
+.role-badge.scanner { background: var(--green-bg); color: var(--green); }
+.role-badge.inativo { background: var(--bg); color: var(--text3); border: 1px solid var(--border); }
+.user-toggle { width: 36px; height: 20px; background: var(--border2); border-radius: 10px; position: relative; cursor: pointer; transition: background 0.2s; border: none; flex-shrink: 0; }
+.user-toggle.active { background: var(--green); }
+.user-toggle::after { content: ''; position: absolute; width: 14px; height: 14px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.user-toggle.active::after { transform: translateX(16px); }
+.btn-icon { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.15s; color: var(--text2); }
+.btn-icon:hover { background: var(--red-bg); border-color: #fecaca; color: var(--red); }
+.add-user-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.form-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; font-family: 'DM Mono', monospace; }
+.form-field input, .form-field select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; background: var(--surface2); color: var(--text); outline: none; transition: border-color 0.2s; }
+.form-field input:focus, .form-field select:focus { border-color: var(--accent); background: white; }
+
+/* ── TOPBAR USER ── */
+.topbar-user { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); transition: all 0.15s; }
+.topbar-user:hover { background: var(--bg); }
+.topbar-avatar { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; }
+
+/* ─────────────────────────────────────────
+   ABA DESEMPENHO
+───────────────────────────────────────── */
+.desemp-controls {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 24px;
+}
+.period-tabs {
+  display: flex; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; box-shadow: var(--shadow);
+}
+.period-tab {
+  padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; background: none; font-family: 'DM Sans', sans-serif;
+  color: var(--text2); transition: all 0.15s; white-space: nowrap;
+}
+.period-tab.active { background: var(--accent); color: white; }
+.period-tab:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+.desemp-date-nav {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px 12px; box-shadow: var(--shadow);
+}
+.desemp-date-nav button {
+  border: none; background: none; cursor: pointer; padding: 4px 8px;
+  border-radius: 6px; font-size: 16px; color: var(--text2); transition: all 0.15s;
+  line-height: 1;
+}
+.desemp-date-nav button:hover { background: var(--bg); color: var(--text); }
+.desemp-period-label {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  font-family: 'DM Mono', monospace; min-width: 160px; text-align: center;
+}
+
+.desemp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+
+/* Ranking de colaboradores */
+.ranking-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 24px;
+}
+.ranking-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+}
+.ranking-title { font-size: 14px; font-weight: 600; }
+.ranking-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.ranking-list { display: flex; flex-direction: column; gap: 10px; }
+.ranking-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; transition: all 0.15s;
+}
+.ranking-item:hover { border-color: var(--border2); background: white; }
+.ranking-item.gold { border-left: 3px solid #f59e0b; }
+.ranking-item.silver { border-left: 3px solid #9ca3af; }
+.ranking-item.bronze { border-left: 3px solid #b45309; }
+.ranking-pos {
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+  min-width: 32px; text-align: center;
+}
+.ranking-pos.gold { color: #f59e0b; }
+.ranking-pos.silver { color: #9ca3af; }
+.ranking-pos.bronze { color: #b45309; }
+.ranking-pos.other { color: var(--text3); font-size: 14px; }
+.ranking-avatar {
+  width: 38px; height: 38px; border-radius: 50%; background: var(--accent);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; flex-shrink: 0;
+}
+.ranking-info { flex: 1; min-width: 0; }
+.ranking-name { font-weight: 600; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ranking-detail { font-size: 12px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.ranking-bar-wrap { flex: 2; display: flex; align-items: center; gap: 10px; }
+.ranking-bar-track { flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.ranking-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+.ranking-count {
+  font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+  color: var(--text); min-width: 40px; text-align: right;
+}
+.ranking-count small { font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--text3); font-weight: 400; }
+
+/* Timeline diária dentro do colaborador */
+.colab-detail-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow);
+}
+.colab-detail-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; cursor: pointer; transition: background 0.15s;
+  border-bottom: 1px solid transparent;
+}
+.colab-detail-header:hover { background: var(--surface2); }
+.colab-detail-header.open { border-bottom-color: var(--border); }
+.colab-detail-name { font-weight: 600; font-size: 14px; }
+.colab-detail-total { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+.colab-detail-body { padding: 16px 20px; display: none; }
+.colab-detail-body.open { display: block; }
+.colab-day-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.colab-day-label { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text2); min-width: 90px; }
+.colab-day-bar-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.colab-day-bar-fill { height: 100%; border-radius: 4px; background: var(--blue); transition: width 0.5s ease; }
+.colab-day-count { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); min-width: 28px; text-align: right; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .desemp-stats { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sidebar { width: 100%; height: auto; position: fixed; bottom: 0; top: auto; left: 0; right: 0; flex-direction: row; padding: 8px 12px; border-right: none; border-top: 1px solid var(--border); z-index: 200; justify-content: space-around; align-items: center; }
+  .logo { display: none; }
+  .nav-label { display: none; }
+  .sidebar-footer { display: none; }
+  .nav { display: flex; flex-direction: row; gap: 4px; width: 100%; justify-content: space-around; }
+  .nav-item { flex-direction: column; gap: 2px; padding: 5px 6px; font-size: 9px; border-radius: 8px; text-align: center; flex: 1; min-width: 0; }
+  .nav-icon { font-size: 20px; opacity: 1; }
+  .main { margin-left: 0; padding-bottom: 72px; }
+  .topbar { padding: 0 16px; height: 56px; }
+  .page-title { font-size: 16px; }
+  .topbar-actions { gap: 6px; }
+  .btn { padding: 6px 10px; font-size: 12px; }
+  #lastUpdate { display: none; }
+  .content { padding: 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .desemp-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 24px; }
+  .stat-label { font-size: 10px; }
+  .charts-grid { gap: 12px; margin-bottom: 16px; }
+  .chart-card { padding: 16px; }
+  .bar-label { min-width: 90px; font-size: 12px; }
+  .hour-chart { height: 80px; gap: 3px; }
+  .hour-label { font-size: 7px; }
+  .table-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+  .search-box { width: 100%; }
+  table { font-size: 12px; }
+  thead th { padding: 10px; font-size: 10px; }
+  tbody td { padding: 10px; }
+  .filter-row { gap: 8px; }
+  .filter-select { font-size: 12px; padding: 7px 10px; flex: 1; }
+  .search-hero { padding: 20px; }
+  .search-hero-title { font-size: 18px; }
+  .search-big { flex-direction: column; }
+  .search-big input { font-size: 14px; padding: 12px 14px; }
+  .search-result-card { flex-direction: column; gap: 12px; padding: 16px; }
+  .search-nf { font-size: 18px; }
+  .pdf-zone { padding: 36px 20px; }
+  .pdf-icon { font-size: 36px; }
+  .pagination { padding: 10px 16px; flex-wrap: wrap; gap: 4px; }
+  .page-btn { width: 28px; height: 28px; font-size: 12px; }
+  .period-tab { padding: 8px 12px; font-size: 12px; }
+  .desemp-controls { gap: 8px; }
+  .ranking-item { flex-wrap: wrap; gap: 10px; }
+  .ranking-bar-wrap { flex: 1 1 100%; }
+}
+@media (max-width: 380px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-value { font-size: 20px; }
+  .nav-item { font-size: 9px; padding: 5px 6px; }
+}
+</style>
 </head>
 <body>
 
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
-    <div class="login-card">
-        <div class="login-logo">
-            <div class="login-logo-title">QGK</div>
-            <div class="login-logo-sub">Dashboard DANFE</div>
-        </div>
-        <div class="login-error" id="loginError"></div>
-        <div class="login-field">
-            <label>Email</label>
-            <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email">
-        </div>
-        <div class="login-field">
-            <label>Senha</label>
-            <input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <button class="login-btn" id="loginBtn" onclick="fazerLogin()">
-            Entrar
-        </button>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-title">QGK</div>
+      <div class="login-logo-sub">Dashboard DANFE</div>
     </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="login-field">
+      <label>Senha</label>
+      <input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="fazerLogin()">Entrar</button>
+  </div>
 </div>
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
-    <div class="logo">
-        <div class="logo-icon">
-            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        </div>
-        <div>
-            <div class="logo-text">QGK</div>
-            <span class="logo-sub">Dashboard DANFE</span>
-        </div>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
     </div>
-
-    <nav class="nav">
-        <div class="nav-label">Menu</div>
-        <button class="nav-item active" onclick="showTab('overview', this)">
-            <span class="nav-icon">📊</span> Visão Geral
-        </button>
-        <button class="nav-item" onclick="showTab('notas', this)">
-            <span class="nav-icon">📋</span> Notas Fiscais
-        </button>
-        <button class="nav-item" onclick="showTab('busca', this)">
-            <span class="nav-icon">🔍</span> Buscar NF
-        </button>
-        <button class="nav-item" onclick="showTab('pdf', this)">
-            <span class="nav-icon">📄</span> Ler PDF
-        </button>
-        <button class="nav-item" onclick="showTab('config', this)">
-            <span class="nav-icon">⚙️</span> Config
-        </button>
-        <button class="nav-item" onclick="showTab('usuarios', this)">
-            <span class="nav-icon">👥</span> Usuários
-        </button>
-        <button class="nav-item" onclick="showTab('lojas', this)">
-            <span class="nav-icon">🏪</span> Lojas
-        </button>
-    </nav>
-
-    <div class="sidebar-footer">
-        <div class="sync-status">
-            <div class="sync-dot" id="syncDot"></div>
-            <span id="syncText">Conectado</span>
-        </div>
-        <button class="btn btn-ghost" style="width:100%;margin-top:8px;justify-content:center;" onclick="sincronizar()">
-            🔄 Sincronizar
-        </button>
-        <button class="btn btn-ghost" style="width:100%;margin-top:6px;justify-content:center;color:var(--red);" onclick="logout()">
-            🚪 Sair
-        </button>
+    <div>
+      <div class="logo-text">QGK</div>
+      <span class="logo-sub">Dashboard DANFE</span>
     </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Menu</div>
+    <button class="nav-item active" data-tab="overview" onclick="showTab('overview', this)">
+      <span class="nav-icon">📊</span> Visão Geral
+    </button>
+    <button class="nav-item" data-tab="desempenho" onclick="showTab('desempenho', this)">
+      <span class="nav-icon">🏆</span> Desempenho
+    </button>
+    <button class="nav-item" data-tab="notas" onclick="showTab('notas', this)">
+      <span class="nav-icon">📋</span> Notas Fiscais
+    </button>
+    <button class="nav-item" data-tab="busca" onclick="showTab('busca', this)">
+      <span class="nav-icon">🔍</span> Buscar NF
+    </button>
+    <button class="nav-item" data-tab="pdf" onclick="showTab('pdf', this)">
+      <span class="nav-icon">📄</span> Ler PDF
+    </button>
+    <button class="nav-item" data-tab="config" onclick="showTab('config', this)">
+      <span class="nav-icon">⚙️</span> Config
+    </button>
+    <button class="nav-item nav-admin" data-tab="usuarios" onclick="showTab('usuarios', this)">
+      <span class="nav-icon">👥</span> Usuários
+    </button>
+    <button class="nav-item nav-admin" data-tab="lojas" onclick="showTab('lojas', this)">
+      <span class="nav-icon">🏪</span> Lojas
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sync-status">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncText">Conectado</span>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px;justify-content:center;" onclick="sincronizar()">
+      🔄 Sincronizar
+    </button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:6px;justify-content:center;color:var(--red);" onclick="logout()">
+      🚪 Sair
+    </button>
+  </div>
 </aside>
 
 <!-- MAIN -->
 <main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Visão Geral</div>
+    <div class="topbar-actions">
+      <span style="font-size:12px;color:var(--text3);" id="lastUpdate">–</span>
+      <button class="btn btn-ghost" onclick="gerarPDFRelatorio()">📄 Exportar PDF</button>
+      <button class="btn btn-primary" onclick="sincronizar()">🔄 Atualizar</button>
+      <div class="topbar-user" onclick="logout()" title="Sair">
+        <div class="topbar-avatar" id="topbarAvatar">?</div>
+        <span id="topbarNome">–</span>
+      </div>
+    </div>
+  </div>
 
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="page-title" id="pageTitle">Visão Geral</div>
-        <div class="topbar-actions">
-            <span style="font-size:12px;color:var(--text3);" id="lastUpdate">–</span>
-            <button class="btn btn-ghost" onclick="gerarPDFRelatorio()">📄 Exportar PDF</button>
-            <button class="btn btn-primary" onclick="sincronizar()">🔄 Atualizar</button>
-            <div class="topbar-user" onclick="logout()" title="Sair">
-                <div class="topbar-avatar" id="topbarAvatar">?</div>
-                <span id="topbarNome">–</span>
+  <div class="content">
+
+    <!-- ── TAB: OVERVIEW ── -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="stats-grid" id="statsGrid">
+        <div class="loading"><div class="spinner"></div> Carregando...</div>
+      </div>
+      <div class="charts-grid" id="chartsGrid" style="display:none;">
+        <div class="chart-card full">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Scans por Hora do Dia</div>
+              <div class="chart-sub">Distribuição de leituras ao longo do dia</div>
             </div>
+          </div>
+          <div class="hour-chart" id="hourChart"></div>
         </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">NFs por Loja</div>
+              <div class="chart-sub">Total acumulado</div>
+            </div>
+          </div>
+          <div class="bar-chart" id="lojaChart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">NFs por Colaborador</div>
+              <div class="chart-sub">Total acumulado</div>
+            </div>
+          </div>
+          <div class="bar-chart" id="colaboradorChart"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- CONTENT -->
-    <div class="content">
-
-        <!-- ── TAB: OVERVIEW ── -->
-        <div id="tab-overview" class="tab-content active">
-            <div class="stats-grid" id="statsGrid">
-                <div class="loading"><div class="spinner"></div> Carregando...</div>
-            </div>
-            <div class="charts-grid" id="chartsGrid" style="display:none;">
-                <!-- Gráfico por hora -->
-                <div class="chart-card full">
-                    <div class="chart-header">
-                        <div>
-                            <div class="chart-title">Scans por Hora do Dia</div>
-                            <div class="chart-sub">Distribuição de leituras ao longo do dia</div>
-                        </div>
-                    </div>
-                    <div class="hour-chart" id="hourChart"></div>
-                </div>
-                <!-- Por loja -->
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <div>
-                            <div class="chart-title">NFs por Loja</div>
-                            <div class="chart-sub">Total acumulado</div>
-                        </div>
-                    </div>
-                    <div class="bar-chart" id="lojaChart"></div>
-                </div>
-                <!-- Por colaborador -->
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <div>
-                            <div class="chart-title">NFs por Colaborador</div>
-                            <div class="chart-sub">Total acumulado</div>
-                        </div>
-                    </div>
-                    <div class="bar-chart" id="colaboradorChart"></div>
-                </div>
-            </div>
+    <!-- ── TAB: DESEMPENHO ── -->
+    <div id="tab-desempenho" class="tab-content">
+      <!-- Controles de período -->
+      <div class="desemp-controls">
+        <div class="period-tabs">
+          <button class="period-tab active" data-period="dia" onclick="setPeriod('dia', this)">Dia</button>
+          <button class="period-tab" data-period="semana" onclick="setPeriod('semana', this)">Semana</button>
+          <button class="period-tab" data-period="mes" onclick="setPeriod('mes', this)">Mês</button>
+          <button class="period-tab" data-period="ano" onclick="setPeriod('ano', this)">Ano</button>
         </div>
-
-        <!-- ── TAB: NOTAS ── -->
-        <div id="tab-notas" class="tab-content">
-            <div class="filter-row">
-                <select class="filter-select" id="filterLoja" onchange="renderTabela()">
-                    <option value="">Todas as lojas</option>
-                </select>
-                <select class="filter-select" id="filterColaborador" onchange="renderTabela()">
-                    <option value="">Todos os colaboradores</option>
-                </select>
-                <select class="filter-select" id="filterFoto" onchange="renderTabela()">
-                    <option value="">Com e sem foto</option>
-                    <option value="sim">Com foto</option>
-                    <option value="nao">Sem foto</option>
-                </select>
-                <input type="date" class="filter-select" id="filterDia" onchange="renderTabela()" title="Filtrar por dia">
-                <button class="btn btn-ghost" onclick="document.getElementById('filterDia').value='';renderTabela()">✕ Limpar data</button>
-            </div>
-            <div class="table-card">
-                <div class="table-header">
-                    <div class="table-title">Notas Fiscais</div>
-                    <div class="search-box">
-                        <span>🔍</span>
-                        <input type="text" placeholder="Buscar NF, colaborador, loja..." id="tableSearch" oninput="renderTabela()">
-                    </div>
-                </div>
-                <div id="tabelaContainer">
-                    <div class="loading"><div class="spinner"></div> Carregando...</div>
-                </div>
-            </div>
+        <div class="desemp-date-nav">
+          <button onclick="navPeriod(-1)" title="Anterior">‹</button>
+          <div class="desemp-period-label" id="desempPeriodLabel">–</div>
+          <button onclick="navPeriod(1)" title="Próximo">›</button>
+          <button onclick="navPeriod(0)" title="Hoje / Atual" style="font-size:12px;padding:4px 10px;font-family:'DM Sans',sans-serif;font-weight:600;">Atual</button>
         </div>
+      </div>
 
-        <!-- ── TAB: BUSCA ── -->
-        <div id="tab-busca" class="tab-content">
-            <div class="search-hero">
-                <div class="search-hero-title">Buscar Nota Fiscal</div>
-                <div class="search-hero-sub">Digite o número da NF, colaborador ou loja para encontrar</div>
-                <div class="search-big">
-                    <input type="text" id="buscaInput" placeholder="Ex: 123456, João, Shopee..." oninput="buscarNF()">
-                    <button class="btn btn-primary" onclick="buscarNF()">Buscar</button>
-                </div>
-            </div>
-            <div id="buscaResultados"></div>
+      <!-- Stats do período -->
+      <div class="desemp-stats" id="desempStats">
+        <div class="loading" style="grid-column:1/-1"><div class="spinner"></div> Carregando...</div>
+      </div>
+
+      <!-- Gráfico de barras do período -->
+      <div class="chart-card full" style="margin-bottom:24px;" id="desempChartCard">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title" id="desempChartTitle">Evolução no Período</div>
+            <div class="chart-sub" id="desempChartSub">NFs por unidade de tempo</div>
+          </div>
         </div>
+        <div id="desempChart" style="display:flex;align-items:flex-end;gap:4px;height:140px;"></div>
+      </div>
 
-        <!-- ── TAB: PDF ── -->
-        <div id="tab-pdf" class="tab-content">
-            <div class="pdf-zone" id="pdfZone" onclick="document.getElementById('pdfFileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropPDF(event)">
-                <div class="pdf-icon">📄</div>
-                <div class="pdf-zone-title">Arraste um PDF ou clique para selecionar</div>
-                <div class="pdf-zone-sub">O texto extraído do PDF será exibido abaixo</div>
-                <input type="file" id="pdfFileInput" accept=".pdf" onchange="lerPDF(event)">
-            </div>
-            <div id="pdfResult" style="display:none;">
-                <div class="pdf-result">
-                    <div class="pdf-result-title" id="pdfFileName">Conteúdo extraído</div>
-                    <div class="pdf-text-content" id="pdfContent"></div>
-                </div>
-            </div>
+      <!-- Ranking de colaboradores -->
+      <div class="ranking-card">
+        <div class="ranking-header">
+          <div>
+            <div class="ranking-title">🏆 Ranking de Colaboradores</div>
+            <div class="ranking-sub" id="rankingSub">Performance no período selecionado</div>
+          </div>
         </div>
-
-        <!-- ── TAB: CONFIG ── -->
-        <div id="tab-config" class="tab-content">
-            <div class="search-hero" style="max-width:480px;">
-                <div class="search-hero-title">⚙️ Configurações</div>
-                <div class="search-hero-sub">Defina a senha que os colaboradores precisarão digitar para editar o nome da loja no scanner.</div>
-
-                <div style="margin-top:24px;">
-                    <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Senha atual</label>
-                    <input type="password" id="senhaAtual" placeholder="Digite a senha atual (padrão: 1234)"
-                        style="width:100%;padding:12px 16px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:12px;">
-
-                    <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Nova senha</label>
-                    <input type="password" id="senhaNova" placeholder="Digite a nova senha"
-                        style="width:100%;padding:12px 16px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:12px;">
-
-                    <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Confirmar nova senha</label>
-                    <input type="password" id="senhaConfirm" placeholder="Repita a nova senha"
-                        style="width:100%;padding:12px 16px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:20px;">
-
-                    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="alterarSenha()">
-                        🔒 Salvar Nova Senha
-                    </button>
-                </div>
-            </div>
+        <div class="ranking-list" id="rankingList">
+          <div class="loading"><div class="spinner"></div> Carregando...</div>
         </div>
+      </div>
 
-        <!-- ── TAB: USUÁRIOS ── -->
-        <div id="tab-usuarios" class="tab-content">
-            <div class="add-user-form">
-                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;">Cadastrar Usuário</div>
-                <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Crie o acesso para um colaborador ou admin.</div>
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label>Nome</label>
-                        <input type="text" id="newUserNome" placeholder="Nome do colaborador">
-                    </div>
-                    <div class="form-field">
-                        <label>Email</label>
-                        <input type="email" id="newUserEmail" placeholder="email@exemplo.com">
-                    </div>
-                    <div class="form-field">
-                        <label>Senha</label>
-                        <input type="password" id="newUserSenha" placeholder="Mínimo 6 caracteres">
-                    </div>
-                    <div class="form-field">
-                        <label>Perfil</label>
-                        <select id="newUserRole">
-                            <option value="scanner">Scanner (colaborador)</option>
-                            <option value="admin">Admin (dashboard)</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn btn-primary" onclick="cadastrarUsuario()" style="width:auto;padding:10px 24px;">
-                    ➕ Cadastrar Usuário
-                </button>
-            </div>
-            <div id="listaUsuarios">
-                <div class="loading"><div class="spinner"></div> Carregando usuários...</div>
-            </div>
+      <!-- Detalhe por colaborador (expansível) -->
+      <div id="colabDetails"></div>
+    </div>
+
+    <!-- ── TAB: NOTAS ── -->
+    <div id="tab-notas" class="tab-content">
+      <div class="filter-row">
+        <select class="filter-select" id="filterLoja" onchange="paginaAtual=1;renderTabela()">
+          <option value="">Todas as lojas</option>
+        </select>
+        <select class="filter-select" id="filterColaborador" onchange="paginaAtual=1;renderTabela()">
+          <option value="">Todos os colaboradores</option>
+        </select>
+        <select class="filter-select" id="filterFoto" onchange="paginaAtual=1;renderTabela()">
+          <option value="">Com e sem foto</option>
+          <option value="sim">Com foto</option>
+          <option value="nao">Sem foto</option>
+        </select>
+        <input type="date" class="filter-select" id="filterDia" onchange="paginaAtual=1;renderTabela()" title="Filtrar por dia">
+        <button class="btn btn-ghost" onclick="document.getElementById('filterDia').value='';paginaAtual=1;renderTabela()">✕ Limpar data</button>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Notas Fiscais</div>
+          <div class="search-box">
+            <span>🔍</span>
+            <input type="text" placeholder="Buscar NF, colaborador, loja..." id="tableSearch" oninput="paginaAtual=1;renderTabela()">
+          </div>
         </div>
-
-        <!-- ── TAB: LOJAS ── -->
-        <div id="tab-lojas" class="tab-content">
-            <div class="add-user-form">
-                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;">Cadastrar Loja</div>
-                <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">As lojas cadastradas aqui aparecerão no seletor do scanner.</div>
-                <div style="display:flex;gap:10px;align-items:flex-end;">
-                    <div class="form-field" style="flex:1;margin:0;">
-                        <label>Nome da Loja</label>
-                        <input type="text" id="newLojaNome" placeholder="Ex: Shopee SP, ML RJ..." 
-                            onkeydown="if(event.key==='Enter') cadastrarLoja()">
-                    </div>
-                    <button class="btn btn-primary" onclick="cadastrarLoja()" style="padding:10px 24px;white-space:nowrap;">
-                        ➕ Cadastrar
-                    </button>
-                </div>
-            </div>
-            <div id="listaLojas">
-                <div class="loading"><div class="spinner"></div> Carregando lojas...</div>
-            </div>
+        <div id="tabelaContainer">
+          <div class="loading"><div class="spinner"></div> Carregando...</div>
         </div>
+      </div>
+    </div>
 
-    </div><!-- /.content -->
-</main><!-- /.main -->
+    <!-- ── TAB: BUSCA ── -->
+    <div id="tab-busca" class="tab-content">
+      <div class="search-hero">
+        <div class="search-hero-title">Buscar Nota Fiscal</div>
+        <div class="search-hero-sub">Digite o número da NF, colaborador ou loja para encontrar</div>
+        <div class="search-big">
+          <input type="text" id="buscaInput" placeholder="Ex: 123456, João, Shopee..." oninput="buscarNF()">
+          <button class="btn btn-primary" onclick="buscarNF()">Buscar</button>
+        </div>
+      </div>
+      <div id="buscaResultados"></div>
+    </div>
+
+    <!-- ── TAB: PDF ── -->
+    <div id="tab-pdf" class="tab-content">
+      <div class="pdf-zone" id="pdfZone" onclick="document.getElementById('pdfFileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropPDF(event)">
+        <div class="pdf-icon">📄</div>
+        <div class="pdf-zone-title">Arraste um PDF ou clique para selecionar</div>
+        <div class="pdf-zone-sub">O texto extraído do PDF será exibido abaixo</div>
+        <input type="file" id="pdfFileInput" accept=".pdf" onchange="lerPDF(event)">
+      </div>
+      <div id="pdfResult" style="display:none;">
+        <div class="pdf-result">
+          <div class="pdf-result-title" id="pdfFileName">Conteúdo extraído</div>
+          <div class="pdf-text-content" id="pdfContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: CONFIG ── -->
+    <div id="tab-config" class="tab-content">
+      <div class="search-hero" style="max-width:480px;">
+        <div class="search-hero-title">⚙️ Configurações</div>
+        <div class="search-hero-sub">Defina a senha que os colaboradores precisarão digitar para editar o nome da loja no scanner.</div>
+        <div style="margin-top:24px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Senha atual</label>
+          <input type="password" id="senhaAtual" placeholder="Digite a senha atual (padrão: 1234)" style="width:100%;padding:12px 16px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:12px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Nova senha</label>
+          <input type="password" id="senhaNova" placeholder="Digite a nova senha" style="width:100%;padding:12px 16px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:12px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Confirmar nova senha</label>
+          <input type="password" id="senhaConfirm" placeholder="Repita a nova senha" style="width:100%;padding:12px 16px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:20px;">
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="alterarSenha()">
+            🔒 Salvar Nova Senha
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: USUÁRIOS ── -->
+    <div id="tab-usuarios" class="tab-content">
+      <div class="add-user-form">
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;">Cadastrar Usuário</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Crie o acesso para um colaborador ou admin.</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nome</label><input type="text" id="newUserNome" placeholder="Nome do colaborador"></div>
+          <div class="form-field"><label>Email</label><input type="email" id="newUserEmail" placeholder="email@exemplo.com"></div>
+          <div class="form-field"><label>Senha</label><input type="password" id="newUserSenha" placeholder="Mínimo 6 caracteres"></div>
+          <div class="form-field">
+            <label>Perfil</label>
+            <select id="newUserRole">
+              <option value="scanner">Scanner (colaborador)</option>
+              <option value="admin">Admin (dashboard)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="cadastrarUsuario()" style="width:auto;padding:10px 24px;">➕ Cadastrar Usuário</button>
+      </div>
+      <div id="listaUsuarios">
+        <div class="loading"><div class="spinner"></div> Carregando usuários...</div>
+      </div>
+    </div>
+
+    <!-- ── TAB: LOJAS ── -->
+    <div id="tab-lojas" class="tab-content">
+      <div class="add-user-form">
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;">Cadastrar Loja</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">As lojas cadastradas aqui aparecerão no seletor do scanner.</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;">
+          <div class="form-field" style="flex:1;margin:0;">
+            <label>Nome da Loja</label>
+            <input type="text" id="newLojaNome" placeholder="Ex: Shopee SP, ML RJ..." onkeydown="if(event.key==='Enter') cadastrarLoja()">
+          </div>
+          <button class="btn btn-primary" onclick="cadastrarLoja()" style="padding:10px 24px;white-space:nowrap;">➕ Cadastrar</button>
+        </div>
+      </div>
+      <div id="listaLojas">
+        <div class="loading"><div class="spinner"></div> Carregando lojas...</div>
+      </div>
+    </div>
+
+  </div><!-- /.content -->
+</main>
 
 <div class="toast" id="toast"></div>
 
@@ -1353,665 +727,1026 @@ let todasNotas = [];
 let paginaAtual = 1;
 const POR_PAGINA = 20;
 
-// ── TABS ──
+// ── Estado Desempenho ──
+let desempPeriod = 'dia';   // 'dia' | 'semana' | 'mes' | 'ano'
+let desempOffset = 0;       // quantos períodos para trás (0 = atual)
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
 function showTab(tab, el) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-    if (el) el.classList.add('active');
-    const titles = { overview: 'Visão Geral', notas: 'Notas Fiscais', busca: 'Buscar NF', pdf: 'Ler PDF', config: 'Configurações', usuarios: 'Usuários', lojas: 'Lojas' };
-    document.getElementById('pageTitle').textContent = titles[tab] || tab;
-    if (tab === 'notas') renderTabela();
-    if (tab === 'usuarios') carregarUsuarios();
-    if (tab === 'lojas') carregarLojasDash();
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {
+    overview: 'Visão Geral', desempenho: 'Desempenho',
+    notas: 'Notas Fiscais', busca: 'Buscar NF',
+    pdf: 'Ler PDF', config: 'Configurações',
+    usuarios: 'Usuários', lojas: 'Lojas'
+  };
+  document.getElementById('pageTitle').textContent = titles[tab] || tab;
+  if (tab === 'notas') renderTabela();
+  if (tab === 'usuarios') carregarUsuarios();
+  if (tab === 'lojas') carregarLojasDash();
+  if (tab === 'desempenho') renderDesempenho();
 }
 
-// ── JSONP ──
+// ══════════════════════════════════════════
+// JSONP
+// ══════════════════════════════════════════
 function jsonpRequest(params) {
-    return new Promise((resolve, reject) => {
-        const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-        const timer = setTimeout(() => {
-            delete window[cbName];
-            document.getElementById(cbName)?.remove();
-            reject(new Error('Timeout'));
-        }, 15000);
-        window[cbName] = (data) => {
-            clearTimeout(timer);
-            delete window[cbName];
-            document.getElementById(cbName)?.remove();
-            resolve(data);
-        };
-        const qs = Object.entries({ ...params, callback: cbName })
-            .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
-        const s = document.createElement('script');
-        s.id = cbName;
-        s.src = APPS_SCRIPT_URL + '?' + qs;
-        s.onerror = () => { clearTimeout(timer); delete window[cbName]; s.remove(); reject(new Error('Erro')); };
-        document.head.appendChild(s);
-    });
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timer = setTimeout(() => {
+      delete window[cbName];
+      document.getElementById(cbName)?.remove();
+      reject(new Error('Timeout'));
+    }, 15000);
+    window[cbName] = (data) => {
+      clearTimeout(timer);
+      delete window[cbName];
+      document.getElementById(cbName)?.remove();
+      resolve(data);
+    };
+    const qs = Object.entries({ ...params, callback: cbName })
+      .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
+    const s = document.createElement('script');
+    s.id = cbName;
+    s.src = APPS_SCRIPT_URL + '?' + qs;
+    s.onerror = () => { clearTimeout(timer); delete window[cbName]; s.remove(); reject(new Error('Erro de script')); };
+    document.head.appendChild(s);
+  });
 }
 
-// ── SYNC ──
+// ══════════════════════════════════════════
+// SYNC
+// ══════════════════════════════════════════
 async function sincronizar() {
-    setSyncStatus('syncing', 'Sincronizando...');
-    try {
-        const notas = await jsonpRequest({ action: 'listar' });
-        if (Array.isArray(notas)) {
-            todasNotas = notas;
-            localStorage.setItem('dashNotas', JSON.stringify(notas));
-            renderOverview();
-            // Só atualiza tabela se a aba Notas estiver ativa
-            if (document.getElementById('tab-notas').classList.contains('active')) renderTabela();
-            setSyncStatus('ok', 'Conectado');
-            document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
-            showToast('✓ ' + notas.length + ' notas carregadas', 'success');
-        }
-    } catch(e) {
-        const cached = localStorage.getItem('dashNotas');
-        if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e2) {} }
-        setSyncStatus('error', 'Sem conexão');
-        showToast('Usando dados em cache', 'error');
+  setSyncStatus('syncing', 'Sincronizando...');
+  try {
+    const notas = await jsonpRequest({ action: 'listar' });
+    if (Array.isArray(notas)) {
+      todasNotas = notas;
+      localStorage.setItem('dashNotas', JSON.stringify(notas));
+      renderOverview();
+      if (document.getElementById('tab-notas').classList.contains('active')) renderTabela();
+      if (document.getElementById('tab-desempenho').classList.contains('active')) renderDesempenho();
+      setSyncStatus('ok', 'Conectado');
+      document.getElementById('lastUpdate').textContent = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
+      showToast('✓ ' + notas.length + ' notas carregadas', 'success');
     }
+  } catch(e) {
+    const cached = localStorage.getItem('dashNotas');
+    if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e2) {} }
+    setSyncStatus('error', 'Sem conexão');
+    showToast('Usando dados em cache', 'error');
+  }
 }
 
 function setSyncStatus(state, text) {
-    const dot = document.getElementById('syncDot');
-    dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
-    document.getElementById('syncText').textContent = text;
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+  document.getElementById('syncText').textContent = text;
 }
 
-// ── OVERVIEW ──
+// ══════════════════════════════════════════
+// OVERVIEW
+// ══════════════════════════════════════════
 function renderOverview() {
-    if (!todasNotas.length) return;
-
-    const total = todasNotas.length;
-    const comFoto = todasNotas.filter(n => n.temFoto).length;
-    const lojas = [...new Set(todasNotas.map(n => n.loja))].length;
-    const colaboradores = [...new Set(todasNotas.map(n => n.colaborador))].length;
-
+  if (!todasNotas.length) {
     document.getElementById('statsGrid').innerHTML = `
-        <div class="stat-card">
-            <div class="stat-label">Total de NFs</div>
-            <div class="stat-value">${total}</div>
-            <div class="stat-sub">notas escaneadas</div>
-        </div>
-        <div class="stat-card green">
-            <div class="stat-label">Com Foto</div>
-            <div class="stat-value">${comFoto}</div>
-            <div class="stat-sub">${Math.round(comFoto/total*100)}% do total</div>
-        </div>
-        <div class="stat-card blue">
-            <div class="stat-label">Lojas</div>
-            <div class="stat-value">${lojas}</div>
-            <div class="stat-sub">lojas distintas</div>
-        </div>
-        <div class="stat-card orange">
-            <div class="stat-label">Colaboradores</div>
-            <div class="stat-value">${colaboradores}</div>
-            <div class="stat-sub">ativos</div>
-        </div>
-    `;
+      <div class="empty-state" style="grid-column:1/-1;padding:40px;">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">Nenhuma nota encontrada. Clique em Atualizar.</div>
+      </div>`;
+    document.getElementById('chartsGrid').style.display = 'none';
+    return;
+  }
+  const total = todasNotas.length;
+  const comFoto = todasNotas.filter(n => n.temFoto).length;
+  const lojas = [...new Set(todasNotas.map(n => n.loja))].length;
+  // Conta colaboradores únicos expandindo duplas "A + B"
+  const colaboradores = new Set(expandirColaboradores(todasNotas).map(n => n.colaborador)).size;
 
-    document.getElementById('chartsGrid').style.display = 'grid';
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total de NFs</div>
+      <div class="stat-value">${total}</div>
+      <div class="stat-sub">notas escaneadas</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Com Foto</div>
+      <div class="stat-value">${comFoto}</div>
+      <div class="stat-sub">${Math.round(comFoto/total*100)}% do total</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Lojas</div>
+      <div class="stat-value">${lojas}</div>
+      <div class="stat-sub">lojas distintas</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Colaboradores</div>
+      <div class="stat-value">${colaboradores}</div>
+      <div class="stat-sub">ativos</div>
+    </div>`;
 
-    // Gráfico por hora
-    const horas = Array(24).fill(0);
-    todasNotas.forEach(n => {
-        if (n.dataHora) {
-            const s = String(n.dataHora);
-            let hora = -1;
-            if (s.includes('T') && s.includes('Z')) {
-                // ISO UTC → BRT (UTC-3)
-                const dt = new Date(s);
-                hora = (dt.getUTCHours() - 3 + 24) % 24;
-            } else {
-                // dd/MM/yyyy HH:mm ou HH:mm:ss
-                const m = s.match(/(\d{2}):(\d{2})/);
-                if (m) hora = parseInt(m[1]);
-            }
-            if (hora >= 0 && hora < 24) horas[hora]++;
-        }
-    });
-    const maxH = Math.max(...horas, 1);
-    document.getElementById('hourChart').innerHTML = horas.map((v, h) => `
-        <div class="hour-col" title="${h}h: ${v} NFs">
-            <div class="hour-bar" style="height:${Math.max(2, (v/maxH)*100)}%"></div>
-            <div class="hour-label">${h < 10 ? '0'+h : h}</div>
-        </div>
-    `).join('');
+  document.getElementById('chartsGrid').style.display = 'grid';
 
-    // Por loja
-    const porLoja = {};
-    todasNotas.forEach(n => { porLoja[n.loja] = (porLoja[n.loja]||0) + 1; });
-    const sortedLojas = Object.entries(porLoja).sort((a,b) => b[1]-a[1]).slice(0, 8);
-    const maxL = sortedLojas[0]?.[1] || 1;
-    document.getElementById('lojaChart').innerHTML = sortedLojas.map(([loja, qtd]) => `
-        <div class="bar-item">
-            <div class="bar-label" title="${loja}">${loja}</div>
-            <div class="bar-track"><div class="bar-fill blue" style="width:${(qtd/maxL)*100}%"></div></div>
-            <div class="bar-value">${qtd}</div>
-        </div>
-    `).join('');
+  // Por hora
+  const horas = Array(24).fill(0);
+  todasNotas.forEach(n => {
+    const hora = extrairHora(n.dataHora);
+    if (hora >= 0) horas[hora]++;
+  });
+  const maxH = Math.max(...horas, 1);
+  document.getElementById('hourChart').innerHTML = horas.map((v, h) => `
+    <div class="hour-col" title="${h}h: ${v} NFs">
+      <div class="hour-bar" style="height:${Math.max(2, (v/maxH)*100)}%"></div>
+      <div class="hour-label">${h < 10 ? '0'+h : h}</div>
+    </div>`).join('');
 
-    // Por colaborador
-    const porColab = {};
-    todasNotas.forEach(n => { porColab[n.colaborador] = (porColab[n.colaborador]||0) + 1; });
-    const sortedColab = Object.entries(porColab).sort((a,b) => b[1]-a[1]).slice(0, 8);
-    const maxC = sortedColab[0]?.[1] || 1;
-    document.getElementById('colaboradorChart').innerHTML = sortedColab.map(([colab, qtd]) => `
-        <div class="bar-item">
-            <div class="bar-label" title="${colab}">${colab}</div>
-            <div class="bar-track"><div class="bar-fill green" style="width:${(qtd/maxC)*100}%"></div></div>
-            <div class="bar-value">${qtd}</div>
-        </div>
-    `).join('');
+  // Por loja
+  const porLoja = {};
+  todasNotas.forEach(n => { porLoja[n.loja] = (porLoja[n.loja]||0) + 1; });
+  const sortedLojas = Object.entries(porLoja).sort((a,b) => b[1]-a[1]).slice(0, 8);
+  const maxL = sortedLojas[0]?.[1] || 1;
+  document.getElementById('lojaChart').innerHTML = sortedLojas.map(([loja, qtd]) => `
+    <div class="bar-item">
+      <div class="bar-label" title="${loja}">${loja}</div>
+      <div class="bar-track"><div class="bar-fill blue" style="width:${(qtd/maxL)*100}%"></div></div>
+      <div class="bar-value">${qtd}</div>
+    </div>`).join('');
 
-    // Popula filtros
-    const lojaSelect = document.getElementById('filterLoja');
-    const colabSelect = document.getElementById('filterColaborador');
-    const lojasAll = [...new Set(todasNotas.map(n => n.loja))].sort();
-    const colabsAll = [...new Set(todasNotas.map(n => n.colaborador))].sort();
-    lojaSelect.innerHTML = '<option value="">Todas as lojas</option>' + lojasAll.map(l => `<option>${l}</option>`).join('');
-    colabSelect.innerHTML = '<option value="">Todos os colaboradores</option>' + colabsAll.map(c => `<option>${c}</option>`).join('');
+  // Por colaborador (expande duplas "A + B" em entradas individuais)
+  const porColab = {};
+  expandirColaboradores(todasNotas).forEach(n => { porColab[n.colaborador] = (porColab[n.colaborador]||0) + 1; });
+  const sortedColab = Object.entries(porColab).sort((a,b) => b[1]-a[1]).slice(0, 8);
+  const maxC = sortedColab[0]?.[1] || 1;
+  document.getElementById('colaboradorChart').innerHTML = sortedColab.map(([colab, qtd]) => `
+    <div class="bar-item">
+      <div class="bar-label" title="${colab}">${colab}</div>
+      <div class="bar-track"><div class="bar-fill green" style="width:${(qtd/maxC)*100}%"></div></div>
+      <div class="bar-value">${qtd}</div>
+    </div>`).join('');
+
+  // Popula filtros da aba Notas
+  const lojaSelect = document.getElementById('filterLoja');
+  const colabSelect = document.getElementById('filterColaborador');
+  const lojasAll = [...new Set(todasNotas.map(n => n.loja))].sort();
+  const colabsAll = [...new Set(todasNotas.map(n => n.colaborador))].sort();
+  lojaSelect.innerHTML = '<option value="">Todas as lojas</option>' + lojasAll.map(l => `<option>${l}</option>`).join('');
+  colabSelect.innerHTML = '<option value="">Todos os colaboradores</option>' + colabsAll.map(c => `<option>${c}</option>`).join('');
 }
 
-// ── TABELA ──
+// ══════════════════════════════════════════
+// DESEMPENHO – helpers de data
+// ══════════════════════════════════════════
+
+/** Extrai a data de uma nota como objeto Date em horário LOCAL (BRT).
+ *  Datas ISO UTC são convertidas subtraindo 3h antes de construir a Date local,
+ *  garantindo consistência com os ranges de getPeriodRange (que usam new Date() local).
+ */
+function notaParaDate(nota) {
+  const s = String(nota.dataHora || '');
+  if (!s) return null;
+  try {
+    if (s.includes('T') && (s.includes('Z') || s.includes('+'))) {
+      // Converte UTC → BRT (UTC-3) e devolve como Date local
+      const utc = new Date(s);
+      const brtMs = utc.getTime() - 3 * 60 * 60 * 1000;
+      const brt = new Date(brtMs);
+      // Reconstrói como Date local usando componentes BRT
+      return new Date(
+        brt.getUTCFullYear(), brt.getUTCMonth(), brt.getUTCDate(),
+        brt.getUTCHours(), brt.getUTCMinutes(), brt.getUTCSeconds()
+      );
+    }
+    // dd/MM/yyyy HH:mm (já está em BRT, vindo da planilha)
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+    if (m) return new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
+    return null;
+  } catch { return null; }
+}
+
+/** Retorna {inicio, fim} do período referenciado por desempOffset */
+function getPeriodRange(period, offset) {
+  const now = new Date();
+  let inicio, fim;
+
+  if (period === 'dia') {
+    inicio = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+    fim    = new Date(inicio); fim.setDate(fim.getDate() + 1);
+  } else if (period === 'semana') {
+    const dow = now.getDay(); // 0=dom, 1=seg ... 6=sab
+    // Dias até a segunda mais recente: dom→-6, seg→0, ter→-1 ...
+    const diasAteSeg = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diasAteSeg + offset * 7);
+    inicio = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
+    fim    = new Date(inicio); fim.setDate(fim.getDate() + 7);
+  } else if (period === 'mes') {
+    // Date normaliza automaticamente meses fora de 0-11 (ex: mês -1 = dezembro do ano anterior)
+    inicio = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    fim    = new Date(now.getFullYear(), now.getMonth() + offset + 1, 1);
+  } else { // ano
+    const y = now.getFullYear() + offset;
+    inicio = new Date(y, 0, 1);
+    fim    = new Date(y + 1, 0, 1);
+  }
+  return { inicio, fim };
+}
+
+/** Rótulo amigável para o período */
+function getPeriodLabel(period, offset) {
+  const { inicio } = getPeriodRange(period, offset);
+  const now = new Date();
+
+  if (period === 'dia') {
+    const hoje = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diff = Math.round((inicio - hoje) / 86400000);
+    if (diff === 0) return 'Hoje';
+    if (diff === -1) return 'Ontem';
+    return inicio.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  }
+  if (period === 'semana') {
+    const { fim } = getPeriodRange(period, offset);
+    const fimD = new Date(fim); fimD.setDate(fimD.getDate() - 1);
+    const s = inicio.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+    const e = fimD.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+    return `${s} – ${e}`;
+  }
+  if (period === 'mes') {
+    return inicio.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  }
+  // ano
+  return String(inicio.getFullYear());
+}
+
+/** Gera os "buckets" do eixo X do gráfico */
+function getPeriodBuckets(period, range) {
+  const { inicio, fim } = range;
+  const buckets = [];
+
+  if (period === 'dia') {
+    for (let h = 0; h < 24; h++) {
+      const s = new Date(inicio); s.setHours(h);
+      const e = new Date(inicio); e.setHours(h+1);
+      buckets.push({ label: `${h < 10 ? '0'+h : h}h`, inicio: s, fim: e });
+    }
+  } else if (period === 'semana') {
+    const dias = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+    for (let d = 0; d < 7; d++) {
+      const s = new Date(inicio); s.setDate(s.getDate() + d);
+      const e = new Date(s); e.setDate(e.getDate() + 1);
+      buckets.push({ label: dias[d], inicio: s, fim: e });
+    }
+  } else if (period === 'mes') {
+    // semanas do mês
+    let cur = new Date(inicio);
+    let w = 1;
+    while (cur < fim) {
+      const s = new Date(cur);
+      const e = new Date(cur); e.setDate(e.getDate() + 7);
+      const efim = e > fim ? new Date(fim) : e;
+      buckets.push({ label: `Sem ${w++}`, inicio: s, fim: efim });
+      cur = new Date(e); // sempre avança para e, mesmo que efim seja menor
+    }
+  } else { // ano
+    const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    for (let m = 0; m < 12; m++) {
+      const s = new Date(inicio.getFullYear(), m, 1);
+      const e = new Date(inicio.getFullYear(), m+1, 1);
+      buckets.push({ label: meses[m], inicio: s, fim: e });
+    }
+  }
+  return buckets;
+}
+
+// ══════════════════════════════════════════
+// DESEMPENHO – render principal
+// ══════════════════════════════════════════
+function setPeriod(period, el) {
+  desempPeriod = period;
+  desempOffset = 0;
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderDesempenho();
+}
+
+function navPeriod(dir) {
+  if (dir === 0) { desempOffset = 0; }
+  else { desempOffset += dir; }
+  renderDesempenho();
+}
+
+function renderDesempenho() {
+  if (!todasNotas.length) {
+    document.getElementById('desempStats').innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1;padding:40px;">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">Nenhuma nota carregada. Clique em Atualizar.</div>
+      </div>`;
+    document.getElementById('rankingList').innerHTML = '';
+    document.getElementById('colabDetails').innerHTML = '';
+    document.getElementById('desempChart').innerHTML = '';
+    return;
+  }
+
+  const range = getPeriodRange(desempPeriod, desempOffset);
+  const label = getPeriodLabel(desempPeriod, desempOffset);
+  document.getElementById('desempPeriodLabel').textContent = label;
+
+  // Filtra notas do período
+  const notas = todasNotas.filter(n => {
+    const d = notaParaDate(n);
+    return d && d >= range.inicio && d < range.fim;
+  });
+
+  const total = notas.length;
+  const comFoto = notas.filter(n => n.temFoto).length;
+  // Conta colaboradores únicos expandindo duplas "A + B"
+  const colaboradores = new Set(expandirColaboradores(notas).map(n => n.colaborador)).size;
+  const media = colaboradores > 0 ? (total / colaboradores).toFixed(1) : '–';
+
+  document.getElementById('desempStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">NFs no Período</div>
+      <div class="stat-value">${total}</div>
+      <div class="stat-sub">${label}</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Com Foto</div>
+      <div class="stat-value">${comFoto}</div>
+      <div class="stat-sub">${total > 0 ? Math.round(comFoto/total*100) : 0}% do total</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Colaboradores</div>
+      <div class="stat-value">${colaboradores}</div>
+      <div class="stat-sub">com lançamentos</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Média / Colaborador</div>
+      <div class="stat-value">${media}</div>
+      <div class="stat-sub">NFs por pessoa</div>
+    </div>`;
+
+  // Gráfico de evolução
+  renderDesempChart(notas, range);
+
+  // Ranking
+  renderRanking(notas, range);
+
+  // Detalhes por colaborador (expandível)
+  renderColabDetails(notas, range);
+}
+
+function renderDesempChart(notas, range) {
+  const buckets = getPeriodBuckets(desempPeriod, range);
+  const counts = buckets.map(b => notas.filter(n => {
+    const d = notaParaDate(n);
+    return d && d >= b.inicio && d < b.fim;
+  }).length);
+
+  const maxV = Math.max(...counts, 1);
+  const chartTitles = { dia: 'NFs por Hora', semana: 'NFs por Dia da Semana', mes: 'NFs por Semana', ano: 'NFs por Mês' };
+  document.getElementById('desempChartTitle').textContent = chartTitles[desempPeriod];
+  document.getElementById('desempChartSub').textContent = getPeriodLabel(desempPeriod, desempOffset);
+
+  document.getElementById('desempChart').innerHTML = counts.map((v, i) => `
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);">${v > 0 ? v : ''}</div>
+      <div style="width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;height:${Math.max(2,(v/maxV)*100)}%;opacity:${v>0?'0.85':'0.15'};transition:height 0.5s ease;" title="${buckets[i].label}: ${v} NFs"></div>
+      <div style="font-size:${desempPeriod==='dia'?'8':'10'}px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap;">${buckets[i].label}</div>
+    </div>`).join('');
+}
+
+function rankClass(i) {
+  return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'other';
+}
+function rankSymbol(i) {
+  return i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : String(i+1);
+}
+
+function renderRanking(notas, range) {
+  const porColab = {};
+  // Expande duplas "A + B" para contabilizar cada colaborador separadamente
+  expandirColaboradores(notas).forEach(n => {
+    if (!porColab[n.colaborador]) porColab[n.colaborador] = { total: 0, comFoto: 0 };
+    porColab[n.colaborador].total++;
+    if (n.temFoto) porColab[n.colaborador].comFoto++;
+  });
+  const sorted = Object.entries(porColab).sort((a,b) => b[1].total - a[1].total);
+  const maxV = sorted[0]?.[1].total || 1;
+
+  document.getElementById('rankingSub').textContent = `Performance em: ${getPeriodLabel(desempPeriod, desempOffset)}`;
+
+  if (!sorted.length) {
+    document.getElementById('rankingList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">Nenhum lançamento neste período</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('rankingList').innerHTML = sorted.map(([nome, data], i) => {
+    const cls = rankClass(i);
+    const pct = (data.total / maxV * 100).toFixed(0);
+    const fotoPct = data.total > 0 ? Math.round(data.comFoto / data.total * 100) : 0;
+    return `
+      <div class="ranking-item ${cls}">
+        <div class="ranking-pos ${cls}">${rankSymbol(i)}</div>
+        <div class="ranking-avatar">${nome.charAt(0).toUpperCase()}</div>
+        <div class="ranking-info">
+          <div class="ranking-name">${nome}</div>
+          <div class="ranking-detail">${fotoPct}% com foto</div>
+        </div>
+        <div class="ranking-bar-wrap">
+          <div class="ranking-bar-track">
+            <div class="ranking-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <div class="ranking-count">${data.total}<small> NFs</small></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderColabDetails(notas, range) {
+  const porColab = {};
+  // Expande duplas "A + B" para detalhar cada colaborador separadamente
+  expandirColaboradores(notas).forEach(n => {
+    const d = notaParaDate(n);
+    if (!d) return;
+    if (!porColab[n.colaborador]) porColab[n.colaborador] = [];
+    porColab[n.colaborador].push({ ...n, _date: d });
+  });
+  const sorted = Object.entries(porColab).sort((a,b) => b[1].length - a[1].length);
+
+  // Gera sub-buckets para o detalhe
+  const buckets = getPeriodBuckets(desempPeriod, range);
+
+  const el = document.getElementById('colabDetails');
+  if (!sorted.length) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<h3 style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">Detalhe por Colaborador</h3>` +
+    sorted.map(([nome, ns], idx) => {
+      const maxB = Math.max(...buckets.map(b => ns.filter(n => n._date >= b.inicio && n._date < b.fim).length), 1);
+      const barsHtml = buckets.map(b => {
+        const cnt = ns.filter(n => n._date >= b.inicio && n._date < b.fim).length;
+        return `<div class="colab-day-row">
+          <div class="colab-day-label">${b.label}</div>
+          <div class="colab-day-bar-track"><div class="colab-day-bar-fill" style="width:${cnt > 0 ? (cnt/maxB*100).toFixed(0) : 0}%"></div></div>
+          <div class="colab-day-count">${cnt}</div>
+        </div>`;
+      }).join('');
+
+      return `<div class="colab-detail-card">
+        <div class="colab-detail-header" onclick="toggleColabDetail(this)" id="colab-header-${idx}">
+          <div>
+            <div class="colab-detail-name">${nome}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;">${ns.filter(n=>n.temFoto).length} com foto de ${ns.length}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="colab-detail-total">${ns.length} <span style="font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text3);font-weight:400;">NFs</span></div>
+            <span style="color:var(--text3);font-size:18px;" id="colab-arrow-${idx}">›</span>
+          </div>
+        </div>
+        <div class="colab-detail-body" id="colab-body-${idx}">
+          ${barsHtml}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function toggleColabDetail(header) {
+  header.classList.toggle('open');
+  const id = header.id.replace('colab-header-', '');
+  const body = document.getElementById('colab-body-' + id);
+  const arrow = document.getElementById('colab-arrow-' + id);
+  const isOpen = body.classList.toggle('open');
+  arrow.textContent = isOpen ? '↓' : '›';
+  arrow.style.transform = isOpen ? 'rotate(0deg)' : '';
+}
+
+// Utilitário anti-XSS: escapa chars especiais HTML
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/**
+ * Expande notas com colaborador composto (ex: 'João + Maria') em entradas
+ * individuais para cada colaborador. Usado em todos os gráficos e rankings
+ * do Dashboard para não tratar duplas como uma única pessoa.
+ * O campo _splitColaborador indica que a entrada foi expandida.
+ */
+function expandirColaboradores(notas) {
+  const resultado = [];
+  notas.forEach(nota => {
+    const partes = nota.colaborador
+      ? nota.colaborador.split('+').map(s => s.trim()).filter(Boolean)
+      : [nota.colaborador || ''];
+    if (partes.length <= 1) {
+      resultado.push(nota);
+    } else {
+      partes.forEach(nome => {
+        resultado.push({ ...nota, colaborador: nome, _splitColaborador: true });
+      });
+    }
+  });
+  return resultado;
+}
+
+// ══════════════════════════════════════════
+// TABELA
+// ══════════════════════════════════════════
 function renderTabela() {
-    const search = (document.getElementById('tableSearch')?.value || '').toLowerCase();
-    const filterLoja = document.getElementById('filterLoja')?.value || '';
-    const filterColab = document.getElementById('filterColaborador')?.value || '';
-    const filterFoto = document.getElementById('filterFoto')?.value || '';
-    const filterDia = document.getElementById('filterDia')?.value || ''; // yyyy-mm-dd
+  const search = (document.getElementById('tableSearch')?.value || '').toLowerCase();
+  const filterLoja = document.getElementById('filterLoja')?.value || '';
+  const filterColab = document.getElementById('filterColaborador')?.value || '';
+  const filterFoto = document.getElementById('filterFoto')?.value || '';
+  const filterDia = document.getElementById('filterDia')?.value || '';
 
-    let filtradas = todasNotas.filter(n => {
-        const txt = (n.numeroNF + n.colaborador + n.loja + n.codigoCompleto).toLowerCase();
-        if (search && !txt.includes(search)) return false;
-        if (filterLoja && n.loja !== filterLoja) return false;
-        if (filterColab && n.colaborador !== filterColab) return false;
-        if (filterFoto === 'sim' && !n.temFoto) return false;
-        if (filterFoto === 'nao' && n.temFoto) return false;
-        if (filterDia) {
-            const dataStr = String(n.dataHora || '');
-            let diaNota = '';
-            if (dataStr.includes('T')) {
-                // ISO UTC → converte para data local BRT
-                const dt = new Date(dataStr);
-                const brt = new Date(dt.getTime() - 3 * 60 * 60 * 1000);
-                diaNota = brt.toISOString().substring(0, 10);
-            } else if (dataStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-                // dd/MM/yyyy HH:mm:ss → pega só a parte da data antes do espaço
-                const dataParte = dataStr.split(' ')[0]; // "dd/MM/yyyy"
-                const partes = dataParte.split('/');     // ["dd","MM","yyyy"]
-                if (partes.length === 3) {
-                    diaNota = `${partes[2]}-${partes[1]}-${partes[0]}`; // yyyy-MM-dd
-                }
-            }
-            if (diaNota !== filterDia) return false;
-        }
-        return true;
-    });
-
-    const total = filtradas.length;
-    const totalPages = Math.ceil(total / POR_PAGINA);
-    if (paginaAtual > totalPages) paginaAtual = 1;
-    const inicio = (paginaAtual - 1) * POR_PAGINA;
-    const pagina = filtradas.slice(inicio, inicio + POR_PAGINA);
-
-    if (!pagina.length) {
-        document.getElementById('tabelaContainer').innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">🔍</div>
-                <div class="empty-state-text">Nenhuma nota encontrada</div>
-            </div>`;
-        return;
+  let filtradas = todasNotas.filter(n => {
+    const txt = (n.numeroNF + n.colaborador + n.loja + (n.codigoCompleto||'')).toLowerCase();
+    if (search && !txt.includes(search)) return false;
+    if (filterLoja && n.loja !== filterLoja) return false;
+    if (filterColab && n.colaborador !== filterColab) return false;
+    if (filterFoto === 'sim' && !n.temFoto) return false;
+    if (filterFoto === 'nao' && n.temFoto) return false;
+    if (filterDia) {
+      const d = notaParaDate(n);
+      if (!d) return false;
+      const diaNota = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      if (diaNota !== filterDia) return false;
     }
+    return true;
+  });
 
-    const rows = pagina.map(n => `
-        <tr>
-            <td><span class="mono">${n.numeroNF}</span></td>
-            <td>${n.colaborador}</td>
-            <td>${n.loja}</td>
-            <td>${n.temFoto ? '<span class="badge badge-green">📷 Com foto</span>' : '<span class="badge badge-gray">Sem foto</span>'}</td>
-            <td><span class="mono" style="font-size:11px;">${formatarData(n.dataHora)}</span></td>
-        </tr>
-    `).join('');
+  const total = filtradas.length;
+  const totalPages = Math.max(1, Math.ceil(total / POR_PAGINA));
+  // Garante que paginaAtual é válida
+  paginaAtual = Math.max(1, Math.min(paginaAtual, totalPages));
+  const inicio = (paginaAtual - 1) * POR_PAGINA;
+  const pagina = filtradas.slice(inicio, inicio + POR_PAGINA);
 
-    const paginacao = totalPages > 1 ? `
-        <div class="pagination">
-            <div class="pagination-info">Mostrando ${inicio+1}–${Math.min(inicio+POR_PAGINA, total)} de ${total} notas</div>
-            <button class="page-btn" onclick="irPagina(${paginaAtual-1})" ${paginaAtual===1?'disabled':''}>‹</button>
-            ${Array.from({length: Math.min(totalPages, 5)}, (_,i) => {
-                const p = i + Math.max(1, paginaAtual - 2);
-                if (p > totalPages) return '';
-                return `<button class="page-btn ${p===paginaAtual?'active':''}" onclick="irPagina(${p})">${p}</button>`;
-            }).join('')}
-            <button class="page-btn" onclick="irPagina(${paginaAtual+1})" ${paginaAtual===totalPages?'disabled':''}>›</button>
-        </div>
-    ` : '';
-
+  if (!pagina.length) {
     document.getElementById('tabelaContainer').innerHTML = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Número NF</th>
-                    <th>Colaborador</th>
-                    <th>Loja</th>
-                    <th>Foto</th>
-                    <th>Data/Hora</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-        ${paginacao}
-    `;
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-text">Nenhuma nota encontrada</div>
+      </div>`;
+    return;
+  }
+
+  const rows = pagina.map(n => `
+    <tr>
+      <td><span class="mono">${escHtml(n.numeroNF)}</span></td>
+      <td>${escHtml(n.colaborador)}</td>
+      <td>${escHtml(n.loja)}</td>
+      <td>${n.temFoto ? '<span class="badge badge-green">📷 Com foto</span>' : '<span class="badge badge-gray">Sem foto</span>'}</td>
+      <td><span class="mono" style="font-size:11px;">${escHtml(formatarData(n.dataHora))}</span></td>
+    </tr>`).join('');
+
+  const paginacao = totalPages > 1 ? `
+    <div class="pagination">
+      <div class="pagination-info">Mostrando ${inicio+1}–${Math.min(inicio+POR_PAGINA, total)} de ${total} notas</div>
+      <button class="page-btn" onclick="irPagina(${paginaAtual-1})" ${paginaAtual<=1?'disabled':''}>‹</button>
+      ${(() => {
+        let btns = '';
+        const start = Math.max(1, paginaAtual - 2);
+        const end = Math.min(totalPages, start + 4);
+        for (let p = start; p <= end; p++) {
+          btns += `<button class="page-btn ${p===paginaAtual?'active':''}" onclick="irPagina(${p})">${p}</button>`;
+        }
+        return btns;
+      })()}
+      <button class="page-btn" onclick="irPagina(${paginaAtual+1})" ${paginaAtual>=totalPages?'disabled':''}>›</button>
+    </div>` : '';
+
+  document.getElementById('tabelaContainer').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Número NF</th><th>Colaborador</th><th>Loja</th><th>Foto</th><th>Data/Hora</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>${paginacao}`;
 }
 
-function irPagina(p) { paginaAtual = p; renderTabela(); }
+function irPagina(p) {
+  const totalPages = Math.max(1, Math.ceil(todasNotas.length / POR_PAGINA));
+  paginaAtual = Math.max(1, Math.min(p, totalPages));
+  renderTabela();
+}
 
-// ── BUSCA ──
+// ══════════════════════════════════════════
+// BUSCA
+// ══════════════════════════════════════════
 function buscarNF() {
-    const termo = document.getElementById('buscaInput').value.trim().toLowerCase();
-    const resultados = document.getElementById('buscaResultados');
+  const termo = document.getElementById('buscaInput').value.trim().toLowerCase();
+  const resultados = document.getElementById('buscaResultados');
+  if (!termo) { resultados.innerHTML = ''; return; }
 
-    if (!termo) { resultados.innerHTML = ''; return; }
+  // Busca apenas em campos relevantes — codigoCompleto (44 dígitos) excluído
+  // para evitar falsos positivos com qualquer sequência numérica
+  const encontradas = todasNotas.filter(n =>
+    n.numeroNF?.toString().toLowerCase().includes(termo) ||
+    n.colaborador?.toLowerCase().includes(termo) ||
+    n.loja?.toLowerCase().includes(termo)
+  );
 
-    const encontradas = todasNotas.filter(n =>
-        n.numeroNF?.toString().toLowerCase().includes(termo) ||
-        n.colaborador?.toLowerCase().includes(termo) ||
-        n.loja?.toLowerCase().includes(termo) ||
-        n.codigoCompleto?.toLowerCase().includes(termo)
-    );
+  if (!encontradas.length) {
+    resultados.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Nenhuma NF encontrada para "<strong>${escHtml(termo)}</strong>"</div></div>`;
+    return;
+  }
 
-    if (!encontradas.length) {
-        resultados.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">🔍</div>
-                <div class="empty-state-text">Nenhuma NF encontrada para "<strong>${termo}</strong>"</div>
-            </div>`;
-        return;
-    }
+  // Destaca o trecho que fez match dentro de uma string
+  function highlight(str) {
+    if (!str) return '–';
+    const safe = escHtml(String(str));
+    const idx = safe.toLowerCase().indexOf(termo);
+    if (idx === -1) return safe;
+    return safe.slice(0, idx) +
+      `<mark style="background:#fef08a;color:#111827;border-radius:2px;padding:0 1px;">${safe.slice(idx, idx + termo.length)}</mark>` +
+      safe.slice(idx + termo.length);
+  }
 
-    resultados.innerHTML = `<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">${encontradas.length} resultado(s) encontrado(s)</div>` +
-        encontradas.slice(0, 50).map(n => `
-            <div class="search-result-card">
-                <div class="search-result-left">
-                    <div class="search-nf">NF ${n.numeroNF}</div>
-                    <div class="search-info">👤 ${n.colaborador} &nbsp;·&nbsp; 🏪 ${n.loja} &nbsp;·&nbsp; 🕐 ${formatarData(n.dataHora)}</div>
-                    <div class="search-info mono" style="font-size:11px;margin-top:2px;">${n.codigoCompleto}</div>
-                </div>
-                <div>${n.temFoto ? '<span class="badge badge-green">📷 Com foto</span>' : '<span class="badge badge-gray">Sem foto</span>'}</div>
-            </div>
-        `).join('');
+  // Badge mostrando por qual campo o resultado foi encontrado
+  function matchBadge(n) {
+    const badges = [];
+    if (n.numeroNF?.toString().toLowerCase().includes(termo))
+      badges.push('<span style="font-size:10px;background:var(--blue-bg);color:var(--blue);padding:2px 7px;border-radius:10px;font-weight:600;">Nº NF</span>');
+    if (n.colaborador?.toLowerCase().includes(termo))
+      badges.push('<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 7px;border-radius:10px;font-weight:600;">Colaborador</span>');
+    if (n.loja?.toLowerCase().includes(termo))
+      badges.push('<span style="font-size:10px;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:10px;font-weight:600;">Loja</span>');
+    return badges.join(' ');
+  }
+
+  resultados.innerHTML = `<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">${encontradas.length} resultado(s) encontrado(s)</div>` +
+    encontradas.slice(0, 50).map(n => `
+      <div class="search-result-card">
+        <div class="search-result-left">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <div class="search-nf">NF ${highlight(n.numeroNF)}</div>
+            <div>${matchBadge(n)}</div>
+          </div>
+          <div class="search-info">👤 ${highlight(n.colaborador)} &nbsp;·&nbsp; 🏪 ${highlight(n.loja)} &nbsp;·&nbsp; 🕐 ${escHtml(formatarData(n.dataHora))}</div>
+        </div>
+        <div>${n.temFoto ? '<span class="badge badge-green">📷 Com foto</span>' : '<span class="badge badge-gray">Sem foto</span>'}</div>
+      </div>`).join('');
+}
 }
 
-// ── PDF RELATORIO ──
+// ══════════════════════════════════════════
+// PDF RELATÓRIO
+// ══════════════════════════════════════════
 function gerarPDFRelatorio() {
-    if (!todasNotas.length) { showToast('Nenhuma nota para exportar', 'error'); return; }
-    const doc = new jsPDF();
-    const pw = doc.internal.pageSize.getWidth();
-
-    // Header
-    doc.setFontSize(22); doc.setTextColor(17,24,39);
-    doc.text('QGK – Relatório DANFE', pw/2, 20, {align:'center'});
-    doc.setFontSize(10); doc.setTextColor(107,114,128);
-    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, pw/2, 28, {align:'center'});
-    doc.text(`Total de notas: ${todasNotas.length}`, pw/2, 34, {align:'center'});
-
-    // Tabela
-    doc.autoTable({
-        startY: 44,
-        head: [['NF', 'Colaborador', 'Loja', 'Foto', 'Data/Hora']],
-        body: todasNotas.map(n => [n.numeroNF, n.colaborador, n.loja, n.temFoto ? 'Sim' : 'Não', formatarData(n.dataHora)]),
-        styles: { fontSize: 9, cellPadding: 4 },
-        headStyles: { fillColor: [17,24,39], textColor: 255, fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: [249,250,251] },
-    });
-
-    doc.save(`relatorio_danfe_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`);
-    showToast('✓ PDF exportado com sucesso!', 'success');
+  if (!todasNotas.length) { showToast('Nenhuma nota para exportar', 'error'); return; }
+  const doc = new jsPDF();
+  const pw = doc.internal.pageSize.getWidth();
+  doc.setFontSize(22); doc.setTextColor(17,24,39);
+  doc.text('QGK – Relatório DANFE', pw/2, 20, {align:'center'});
+  doc.setFontSize(10); doc.setTextColor(107,114,128);
+  doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, pw/2, 28, {align:'center'});
+  doc.text(`Total de notas: ${todasNotas.length}`, pw/2, 34, {align:'center'});
+  doc.autoTable({
+    startY: 44,
+    head: [['NF', 'Colaborador', 'Loja', 'Foto', 'Data/Hora']],
+    body: todasNotas.map(n => [n.numeroNF, n.colaborador, n.loja, n.temFoto ? 'Sim' : 'Não', formatarData(n.dataHora)]),
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [17,24,39], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [249,250,251] },
+  });
+  doc.save(`relatorio_danfe_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`);
+  showToast('✓ PDF exportado com sucesso!', 'success');
 }
 
-// ── LER PDF ──
+// ══════════════════════════════════════════
+// LER PDF
+// ══════════════════════════════════════════
 async function lerPDF(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    processarPDF(file);
+  const file = event.target.files[0];
+  if (!file) return;
+  processarPDF(file);
 }
-
 function dragOver(e) { e.preventDefault(); document.getElementById('pdfZone').classList.add('drag-over'); }
 function dragLeave() { document.getElementById('pdfZone').classList.remove('drag-over'); }
 function dropPDF(e) {
-    e.preventDefault();
-    dragLeave();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === 'application/pdf') processarPDF(file);
+  e.preventDefault(); dragLeave();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') processarPDF(file);
 }
-
 async function processarPDF(file) {
-    document.getElementById('pdfResult').style.display = 'none';
-    document.getElementById('pdfFileName').textContent = '⏳ Processando ' + file.name + '...';
-
-    try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-        let textoCompleto = '';
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            textoCompleto += `\n─── PÁGINA ${i} ───\n`;
-            textoCompleto += content.items.map(item => item.str).join(' ') + '\n';
-        }
-
-        document.getElementById('pdfFileName').textContent = `📄 ${file.name} (${pdf.numPages} página${pdf.numPages>1?'s':''})`;
-        document.getElementById('pdfContent').textContent = textoCompleto.trim();
-        document.getElementById('pdfResult').style.display = 'block';
-        showToast('✓ PDF lido com sucesso!', 'success');
-    } catch(e) {
-        showToast('Erro ao ler o PDF', 'error');
-        console.error(e);
+  document.getElementById('pdfResult').style.display = 'none';
+  document.getElementById('pdfFileName').textContent = '⏳ Processando ' + file.name + '...';
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+    let textoCompleto = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      textoCompleto += `\n─── PÁGINA ${i} ───\n`;
+      textoCompleto += content.items.map(item => item.str).join(' ') + '\n';
     }
+    document.getElementById('pdfFileName').textContent = `📄 ${file.name} (${pdf.numPages} página${pdf.numPages>1?'s':''})`;
+    document.getElementById('pdfContent').textContent = textoCompleto.trim();
+    document.getElementById('pdfResult').style.display = 'block';
+    showToast('✓ PDF lido com sucesso!', 'success');
+  } catch(e) {
+    showToast('Erro ao ler o PDF', 'error');
+    console.error(e);
+  }
 }
 
-// ── UTILS ──
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+
+/** Extrai hora (0-23) de uma string de data, já convertida para BRT */
+function extrairHora(dataHora) {
+  // Reutiliza notaParaDate que já cuida da conversão BRT corretamente
+  const d = notaParaDate({ dataHora });
+  return d ? d.getHours() : -1;
+}
+
 function formatarData(d) {
-    if (!d) return '–';
-    try {
-        const s = String(d);
-        // Formato ISO: 2026-03-03T12:53:03.072Z → converte para BRT
-        if (s.includes('T') && s.includes('Z')) {
-            const dt = new Date(s);
-            return dt.toLocaleString('pt-BR', {
-                timeZone: 'America/Sao_Paulo',
-                day:'2-digit', month:'2-digit', year:'numeric',
-                hour:'2-digit', minute:'2-digit'
-            });
-        }
-        // Formato dd/MM/yyyy HH:mm:ss — já legível, retorna direto (sem segundos)
-        if (s.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-            return s.substring(0, 16); // dd/MM/yyyy HH:mm
-        }
-        return s;
-    } catch { return String(d); }
+  if (!d) return '–';
+  try {
+    const s = String(d);
+    if (s.includes('T') && (s.includes('Z') || s.includes('+'))) {
+      return new Date(s).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+      });
+    }
+    if (s.match(/^\d{2}\/\d{2}\/\d{4}/)) return s.substring(0, 16);
+    return s;
+  } catch { return String(d); }
 }
 
 function showToast(msg, type = '') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show ' + type;
-    setTimeout(() => t.classList.remove('show'), 3000);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ── SENHA DE EDIÇÃO DE LOJA ──
+// ══════════════════════════════════════════
+// SENHA DE EDIÇÃO
+// ══════════════════════════════════════════
 async function alterarSenha() {
-    const atual   = document.getElementById('senhaAtual').value;
-    const nova    = document.getElementById('senhaNova').value;
-    const confirm = document.getElementById('senhaConfirm').value;
-
-    if (!nova)           { showToast('Digite a nova senha', 'error'); return; }
-    if (nova !== confirm){ showToast('As senhas não coincidem', 'error'); return; }
-    if (nova.length < 4) { showToast('Senha deve ter pelo menos 4 caracteres', 'error'); return; }
-
-    try {
-        const res = await jsonpRequest({
-            action: 'alterarSenhaEdicao',
-            senhaAtual: hashSenha(atual),
-            senhaNova:  hashSenha(nova)
-        });
-        if (res && res.ok) {
-            document.getElementById('senhaAtual').value  = '';
-            document.getElementById('senhaNova').value   = '';
-            document.getElementById('senhaConfirm').value= '';
-            showToast('✓ Senha de edição atualizada!', 'success');
-        } else {
-            showToast(res?.erro || 'Erro ao salvar senha', 'error');
-        }
-    } catch(e) { showToast('Sem conexão com servidor', 'error'); }
+  const atual = document.getElementById('senhaAtual').value;
+  const nova = document.getElementById('senhaNova').value;
+  const confirm = document.getElementById('senhaConfirm').value;
+  if (!nova) { showToast('Digite a nova senha', 'error'); return; }
+  if (nova !== confirm) { showToast('As senhas não coincidem', 'error'); return; }
+  if (nova.length < 4) { showToast('Senha deve ter pelo menos 4 caracteres', 'error'); return; }
+  try {
+    const res = await jsonpRequest({ action: 'alterarSenhaEdicao', senhaAtual: hashSenha(atual), senhaNova: hashSenha(nova) });
+    if (res && res.ok) {
+      document.getElementById('senhaAtual').value = '';
+      document.getElementById('senhaNova').value = '';
+      document.getElementById('senhaConfirm').value = '';
+      showToast('✓ Senha de edição atualizada!', 'success');
+    } else {
+      showToast(res?.erro || 'Erro ao salvar senha', 'error');
+    }
+  } catch(e) { showToast('Sem conexão com servidor', 'error'); }
 }
 
-// ── AUTH ──
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
 const SESSION_KEY = 'qgk_session';
 let usuarioLogado = null;
 
 function hashSenha(s) {
-    let h = 0;
-    for (let i = 0; i < s.length; i++) { h = Math.imul(31, h) + s.charCodeAt(i) | 0; }
-    return 'h' + Math.abs(h).toString(36);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = Math.imul(31, h) + s.charCodeAt(i) | 0; }
+  return 'h' + Math.abs(h).toString(36);
 }
 
 async function fazerLogin() {
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    const senha = document.getElementById('loginSenha').value;
-    const errEl = document.getElementById('loginError');
-    const btn   = document.getElementById('loginBtn');
-
-    if (!email || !senha) { mostrarErroLogin('Preencha email e senha.'); return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Verificando...';
-    errEl.style.display = 'none';
-
-    try {
-        const res = await jsonpRequest({ action: 'login', email, senha: hashSenha(senha) });
-        if (res && res.ok) {
-            usuarioLogado = { nome: res.nome, email: res.email, role: res.role };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(usuarioLogado));
-            mostrarDashboard();
-        } else {
-            mostrarErroLogin(res?.erro || 'Email ou senha incorretos.');
-        }
-    } catch(e) {
-        mostrarErroLogin('Sem conexão com o servidor.');
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('loginSenha').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  if (!email || !senha) { mostrarErroLogin('Preencha email e senha.'); return; }
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  errEl.style.display = 'none';
+  try {
+    const res = await jsonpRequest({ action: 'login', email, senha: hashSenha(senha) });
+    if (res && res.ok) {
+      usuarioLogado = { nome: res.nome, email: res.email, role: res.role };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(usuarioLogado));
+      mostrarDashboard();
+    } else {
+      mostrarErroLogin(res?.erro || 'Email ou senha incorretos.');
     }
-
-    btn.disabled = false;
-    btn.textContent = 'Entrar';
+  } catch(e) {
+    mostrarErroLogin('Sem conexão com o servidor.');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Entrar';
 }
 
 function mostrarErroLogin(msg) {
-    const el = document.getElementById('loginError');
-    el.textContent = msg;
-    el.style.display = 'block';
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
 }
 
 let _syncInterval = null;
 
 function mostrarDashboard() {
-    document.getElementById('loginScreen').classList.add('hidden');
-    const ini = (usuarioLogado.nome || usuarioLogado.email).charAt(0).toUpperCase();
-    document.getElementById('topbarAvatar').textContent = ini;
-    document.getElementById('topbarNome').textContent   = usuarioLogado.nome || usuarioLogado.email;
-    if (usuarioLogado.role !== 'admin') {
-        document.querySelectorAll('.nav-item').forEach(b => {
-            if (b.textContent.includes('Usuários') || b.textContent.includes('Lojas')) b.style.display = 'none';
-        });
-    }
-    // Garante que começa sempre na aba Visão Geral
-    showTab('overview', document.querySelector('.nav-item'));
-    const cached = localStorage.getItem('dashNotas');
-    if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e) {} }
-    sincronizar();
-    if (_syncInterval) clearInterval(_syncInterval);
-    _syncInterval = setInterval(sincronizar, 60000);
+  document.getElementById('loginScreen').classList.add('hidden');
+  const ini = (usuarioLogado.nome || usuarioLogado.email).charAt(0).toUpperCase();
+  document.getElementById('topbarAvatar').textContent = ini;
+  document.getElementById('topbarNome').textContent = usuarioLogado.nome || usuarioLogado.email;
+
+  // FIX: usa data-tab em vez de texto do botão para ocultar abas de admin
+  if (usuarioLogado.role !== 'admin') {
+    document.querySelectorAll('.nav-admin').forEach(b => b.style.display = 'none');
+  }
+
+  showTab('overview', document.querySelector('.nav-item'));
+  const cached = localStorage.getItem('dashNotas');
+  if (cached) { try { todasNotas = JSON.parse(cached); renderOverview(); } catch(e) {} }
+  sincronizar();
+  if (_syncInterval) clearInterval(_syncInterval);
+  _syncInterval = setInterval(sincronizar, 60000);
 }
 
 function logout() {
-    if (_syncInterval) { clearInterval(_syncInterval); _syncInterval = null; }
-    localStorage.removeItem(SESSION_KEY);
-    usuarioLogado = null;
-    todasNotas = [];
-    // Restaura nav (caso algum item estivesse oculto)
-    document.querySelectorAll('.nav-item').forEach(b => b.style.display = '');
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginSenha').value = '';
-    document.getElementById('loginError').style.display = 'none';
+  if (_syncInterval) { clearInterval(_syncInterval); _syncInterval = null; }
+  localStorage.removeItem(SESSION_KEY);
+  usuarioLogado = null;
+  todasNotas = [];
+  // Restaura visibilidade de todos os itens de nav
+  document.querySelectorAll('.nav-item').forEach(b => b.style.display = '');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginSenha').value = '';
+  document.getElementById('loginError').style.display = 'none';
 }
 
-// ── GESTÃO DE USUÁRIOS ──
+// ══════════════════════════════════════════
+// GESTÃO DE USUÁRIOS
+// ══════════════════════════════════════════
 async function carregarUsuarios() {
-    try {
-        const lista = await jsonpRequest({ action: 'listarUsuarios' });
-        renderUsuarios(Array.isArray(lista) ? lista : []);
-    } catch(e) {
-        document.getElementById('listaUsuarios').innerHTML =
-            '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Erro ao carregar usuários</div></div>';
-    }
+  try {
+    const lista = await jsonpRequest({ action: 'listarUsuarios' });
+    renderUsuarios(Array.isArray(lista) ? lista : []);
+  } catch(e) {
+    document.getElementById('listaUsuarios').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Erro ao carregar usuários</div></div>';
+  }
 }
 
 function renderUsuarios(lista) {
-    if (!lista.length) {
-        document.getElementById('listaUsuarios').innerHTML =
-            '<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">Nenhum usuário cadastrado ainda</div></div>';
-        return;
-    }
-    document.getElementById('listaUsuarios').innerHTML = lista.map(u => `
-        <div class="user-card">
-            <div class="user-info">
-                <div class="user-avatar ${u.role === 'admin' ? 'admin' : u.ativo === false ? 'inactive' : ''}">${(u.nome||u.email).charAt(0).toUpperCase()}</div>
-                <div>
-                    <div class="user-name">${u.nome || '–'}</div>
-                    <div class="user-email">${u.email}</div>
-                </div>
-            </div>
-            <div class="user-actions">
-                <span class="role-badge ${u.role}">${u.role === 'admin' ? 'Admin' : 'Scanner'}</span>
-                <button class="user-toggle ${u.ativo !== false ? 'active' : ''}"
-                    onclick="toggleUsuario('${u.email}', ${u.ativo !== false})"
-                    title="${u.ativo !== false ? 'Desativar' : 'Ativar'}"></button>
-                <button class="btn-icon" onclick="excluirUsuario('${u.email}')" title="Excluir">🗑️</button>
-            </div>
+  if (!lista.length) {
+    document.getElementById('listaUsuarios').innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">Nenhum usuário cadastrado ainda</div></div>';
+    return;
+  }
+  document.getElementById('listaUsuarios').innerHTML = lista.map(u => `
+    <div class="user-card">
+      <div class="user-info">
+        <div class="user-avatar ${u.role === 'admin' ? 'admin' : u.ativo === false ? 'inactive' : ''}">${escHtml((u.nome||u.email).charAt(0).toUpperCase())}</div>
+        <div>
+          <div class="user-name">${escHtml(u.nome || '–')}</div>
+          <div class="user-email">${escHtml(u.email)}</div>
         </div>
-    `).join('');
+      </div>
+      <div class="user-actions">
+        <span class="role-badge ${escHtml(u.role)}">${u.role === 'admin' ? 'Admin' : 'Scanner'}</span>
+        <button class="user-toggle ${u.ativo !== false ? 'active' : ''}" onclick="toggleUsuario(${JSON.stringify(u.email)}, ${u.ativo !== false})" title="${u.ativo !== false ? 'Desativar' : 'Ativar'}"></button>
+        <button class="btn-icon" onclick="excluirUsuario(${JSON.stringify(u.email)})" title="Excluir">🗑</button>
+      </div>
+    </div>`).join('');
 }
 
 async function cadastrarUsuario() {
-    const nome  = document.getElementById('newUserNome').value.trim();
-    const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
-    const senha = document.getElementById('newUserSenha').value;
-    const role  = document.getElementById('newUserRole').value;
-
-    if (!nome || !email || !senha) { showToast('Preencha todos os campos', 'error'); return; }
-    if (senha.length < 6)          { showToast('Senha mínimo 6 caracteres', 'error'); return; }
-    if (!email.includes('@'))      { showToast('Email inválido', 'error'); return; }
-
-    try {
-        const res = await jsonpRequest({ action: 'cadastrarUsuario', nome, email, senha: hashSenha(senha), role });
-        if (res && res.ok) {
-            showToast('✓ Usuário cadastrado!', 'success');
-            document.getElementById('newUserNome').value  = '';
-            document.getElementById('newUserEmail').value = '';
-            document.getElementById('newUserSenha').value = '';
-            carregarUsuarios();
-        } else {
-            showToast(res?.erro || 'Erro ao cadastrar', 'error');
-        }
-    } catch(e) { showToast('Sem conexão', 'error'); }
+  const nome = document.getElementById('newUserNome').value.trim();
+  const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('newUserSenha').value;
+  const role = document.getElementById('newUserRole').value;
+  if (!nome || !email || !senha) { showToast('Preencha todos os campos', 'error'); return; }
+  if (senha.length < 6) { showToast('Senha mínimo 6 caracteres', 'error'); return; }
+  if (!email.includes('@')) { showToast('Email inválido', 'error'); return; }
+  try {
+    const res = await jsonpRequest({ action: 'cadastrarUsuario', nome, email, senha: hashSenha(senha), role });
+    if (res && res.ok) {
+      showToast('✓ Usuário cadastrado!', 'success');
+      document.getElementById('newUserNome').value = '';
+      document.getElementById('newUserEmail').value = '';
+      document.getElementById('newUserSenha').value = '';
+      carregarUsuarios();
+    } else { showToast(res?.erro || 'Erro ao cadastrar', 'error'); }
+  } catch(e) { showToast('Sem conexão', 'error'); }
 }
 
 async function toggleUsuario(email, ativoAtual) {
-    try {
-        await jsonpRequest({ action: 'toggleUsuario', email, ativo: !ativoAtual });
-        showToast(ativoAtual ? '⛔ Usuário desativado' : '✓ Usuário ativado', ativoAtual ? '' : 'success');
-        carregarUsuarios();
-    } catch(e) { showToast('Erro ao atualizar', 'error'); }
+  try {
+    await jsonpRequest({ action: 'toggleUsuario', email, ativo: !ativoAtual });
+    showToast(ativoAtual ? '⛔ Usuário desativado' : '✓ Usuário ativado', ativoAtual ? '' : 'success');
+    carregarUsuarios();
+  } catch(e) { showToast('Erro ao atualizar', 'error'); }
 }
 
 async function excluirUsuario(email) {
-    if (!confirm(`Excluir o usuário ${email}?`)) return;
-    try {
-        await jsonpRequest({ action: 'excluirUsuario', email });
-        showToast('✓ Usuário excluído', 'success');
-        carregarUsuarios();
-    } catch(e) { showToast('Erro ao excluir', 'error'); }
+  if (!confirm(`Excluir o usuário ${email}?`)) return;
+  try {
+    await jsonpRequest({ action: 'excluirUsuario', email });
+    showToast('✓ Usuário excluído', 'success');
+    carregarUsuarios();
+  } catch(e) { showToast('Erro ao excluir', 'error'); }
 }
 
-// ── LOJAS ──
+// ══════════════════════════════════════════
+// LOJAS
+// ══════════════════════════════════════════
 async function carregarLojasDash() {
-    const el = document.getElementById('listaLojas');
-    el.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
-    try {
-        const lista = await jsonpRequest({ action: 'listarLojas' });
-        renderLojasDash(Array.isArray(lista) ? lista : []);
-    } catch(e) {
-        el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Erro ao carregar lojas</div></div>';
-    }
+  const el = document.getElementById('listaLojas');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+  try {
+    const lista = await jsonpRequest({ action: 'listarLojas' });
+    renderLojasDash(Array.isArray(lista) ? lista : []);
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Erro ao carregar lojas</div></div>';
+  }
 }
 
 function renderLojasDash(lista) {
-    const el = document.getElementById('listaLojas');
-    if (!lista.length) {
-        el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏪</div><div class="empty-state-text">Nenhuma loja cadastrada ainda</div></div>';
-        return;
-    }
-    el.innerHTML = lista.map(nome => `
-        <div class="user-card">
-            <div class="user-info">
-                <div class="user-avatar" style="background:var(--blue);">🏪</div>
-                <div>
-                    <div class="user-name">${nome}</div>
-                    <div class="user-email">Disponível no scanner</div>
-                </div>
-            </div>
-            <div class="user-actions">
-                <button class="btn-icon" onclick="excluirLoja(this.dataset.nome)" data-nome="${nome.replace(/"/g,'&quot;')}" title="Excluir">🗑️</button>
-            </div>
+  const el = document.getElementById('listaLojas');
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏪</div><div class="empty-state-text">Nenhuma loja cadastrada ainda</div></div>';
+    return;
+  }
+  el.innerHTML = lista.map(nome => `
+    <div class="user-card">
+      <div class="user-info">
+        <div class="user-avatar" style="background:var(--blue);">🏪</div>
+        <div>
+          <div class="user-name">${escHtml(nome)}</div>
+          <div class="user-email">Disponível no scanner</div>
         </div>
-    `).join('');
+      </div>
+      <div class="user-actions">
+        <button class="btn-icon" onclick="excluirLoja(${JSON.stringify(nome)})" title="Excluir">🗑</button>
+      </div>
+    </div>`).join('');
 }
 
 async function cadastrarLoja() {
-    const input = document.getElementById('newLojaNome');
-    const nome = input.value.trim();
-    if (!nome) { showToast('Digite o nome da loja', 'error'); return; }
-    try {
-        const res = await jsonpRequest({ action: 'adicionarLoja', nome });
-        if (res && res.ok) {
-            showToast(res.jaExistia ? '⚠️ Loja já cadastrada' : '✓ Loja cadastrada!', res.jaExistia ? '' : 'success');
-            input.value = '';
-            carregarLojasDash();
-        } else {
-            showToast(res?.erro || 'Erro ao cadastrar', 'error');
-        }
-    } catch(e) { showToast('Sem conexão', 'error'); }
+  const input = document.getElementById('newLojaNome');
+  const nome = input.value.trim();
+  if (!nome) { showToast('Digite o nome da loja', 'error'); return; }
+  try {
+    const res = await jsonpRequest({ action: 'adicionarLoja', nome });
+    if (res && res.ok) {
+      showToast(res.jaExistia ? '⚠️ Loja já cadastrada' : '✓ Loja cadastrada!', res.jaExistia ? '' : 'success');
+      input.value = '';
+      carregarLojasDash();
+    } else { showToast(res?.erro || 'Erro ao cadastrar', 'error'); }
+  } catch(e) { showToast('Sem conexão', 'error'); }
 }
 
-async function excluirLoja(el) {
-    const nome = typeof el === 'string' ? el : el.dataset.nome;
-    if (!nome) return;
-    if (!confirm(`Excluir a loja "${nome}"?\nEla não aparecerá mais no scanner.`)) return;
-    try {
-        const res = await jsonpRequest({ action: 'excluirLoja', nome });
-        if (res && res.ok) {
-            showToast('✓ Loja excluída', 'success');
-            carregarLojasDash();
-        } else {
-            showToast(res?.erro || 'Erro ao excluir', 'error');
-        }
-    } catch(e) { showToast('Sem conexão', 'error'); }
+// FIX: função excluirLoja simplificada, recebe sempre string
+async function excluirLoja(nome) {
+  if (!nome) return;
+  if (!confirm(`Excluir a loja "${nome}"?\nEla não aparecerá mais no scanner.`)) return;
+  try {
+    const res = await jsonpRequest({ action: 'excluirLoja', nome });
+    if (res && res.ok) {
+      showToast('✓ Loja excluída', 'success');
+      carregarLojasDash();
+    } else { showToast(res?.erro || 'Erro ao excluir', 'error'); }
+  } catch(e) { showToast('Sem conexão', 'error'); }
 }
 
-// ── INIT ──
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
 window.addEventListener('load', () => {
-    // Enter no login
-    ['loginEmail','loginSenha'].forEach(id => {
-        document.getElementById(id).addEventListener('keydown', e => {
-            if (e.key === 'Enter') fazerLogin();
-        });
+  ['loginEmail','loginSenha'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') fazerLogin();
     });
-
-    // Verifica sessão salva
-    const sess = localStorage.getItem(SESSION_KEY);
-    if (sess) {
-        try {
-            usuarioLogado = JSON.parse(sess);
-            mostrarDashboard();
-            return;
-        } catch(e) {}
-    }
-    // Sem sessão — mostra login, não faz auto-sync
+  });
+  const sess = localStorage.getItem(SESSION_KEY);
+  if (sess) {
+    try { usuarioLogado = JSON.parse(sess); mostrarDashboard(); return; } catch(e) {}
+  }
 });
 </script>
 </body>
 </html>
+
